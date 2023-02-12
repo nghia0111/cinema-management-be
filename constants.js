@@ -10,5 +10,5 @@ const userRoles = {
 };
 
 module.exports = {
-  userRoles,
+  userRoles
 };
