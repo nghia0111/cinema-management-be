@@ -16,10 +16,11 @@ const ticketSchema = new Schema({
     type: Number,
     require: true,
   },
-  owner: {
-    type: Schema.Types.ObjectId,
-    ref: "User"
+  booked: {
+    type: Boolean,
+    require: true,
+    default: false
   }
-});
+}, {timestamps: true});
 
 module.exports = mongoose.model("Ticket", ticketSchema);

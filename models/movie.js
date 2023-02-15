@@ -49,6 +49,10 @@ const movieSchemma = new Schema({
     type: Date,
     require: true,
   },
+  endDay: {
+    type: Date,
+    require: true,
+  },
   language: {
     type: String,
     require: true,
@@ -56,7 +60,7 @@ const movieSchemma = new Schema({
   slug: {
     type: String,
     slug: "name",
-    unique: true
+    unique: true,
   },
 });
 
