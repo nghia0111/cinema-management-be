@@ -7,11 +7,11 @@ const Account = require("../models/account");
 
 const { userRoles, userStatus } = require("../constants");
 
-const { getRole } = require("../util/roles");
+const { getRole } = require("../utils/roles");
 
 sgMail.setApiKey(process.env.SG_API_KEY);
 
-exports.createStaff = async (req, res, next) => {
+exports.createUser = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     const error = new Error(errors.array()[0].msg);
@@ -19,16 +19,23 @@ exports.createStaff = async (req, res, next) => {
     error.validationErrors = errors.array();
     return next(error);
   }
-  const { name, address, email, phone, gender, birthday } = req.body;
+  const { role, name, address, email, phone, gender, birthday } = req.body;
 
   try {
     const currentUserRole = await getRole(req.accountId);
     if (
-      currentUserRole != userRoles.MANAGER
+      currentUserRole != userRoles.MANAGER ||
+      currentUserRole != userRoles.OWNER
     ) {
       const error = new Error(
-        "Chỉ có quản lý mới được thêm nhân viên"
+        "Chỉ có quản lý hoặc chủ rạp mới được thêm nhân viên"
       );
+      error.statusCode = 401;
+      return next(error);
+    }
+
+    if (currentUserRole === userRoles.MANAGER && role === userRoles.MANAGER) {
+      const error = new Error("Quản lý chỉ được thêm nhân viên cấp dưới");
       error.statusCode = 401;
       return next(error);
     }
@@ -39,7 +46,7 @@ exports.createStaff = async (req, res, next) => {
     await account.save();
 
     const user = new User({
-      role: userRoles.STAFF,
+      role,
       account: account._id.toString(),
       name,
       address,
@@ -67,11 +74,25 @@ exports.createStaff = async (req, res, next) => {
   }
 };
 
-exports.getStaff = async (req, res, next) => {
+exports.getUsers = async (req, res, next) => {
   try {
-    const staff = await User.find({ role: userRoles.STAFF, status: userStatus.ACTIVE })
-      .populate("account");
-    res.status(200).json({ staff });
+    const currentUserRole = await getRole(req.accountId);
+    if (
+      currentUserRole != userRoles.MANAGER ||
+      currentUserRole != userRoles.OWNER
+    ) {
+      const error = new Error(
+        "Chỉ có quản lý hoặc chủ rạp mới được xem danh sách nhân viên"
+      );
+      error.statusCode = 401;
+      return next(error);
+    }
+    const roles = [userRoles.STAFF, userRoles.MANAGER];
+    const users = await User.find({
+      role: { $in: roles },
+      status: userStatus.ACTIVE,
+    }).populate("account");
+    res.status(200).json({ users });
   } catch (err) {
     const error = new Error(err.message);
     error.statusCode = 500;
@@ -79,24 +100,36 @@ exports.getStaff = async (req, res, next) => {
   }
 };
 
-exports.deleteStaff = async (req, res, next) => {
-  const staffId = req.params.staffId;
+exports.deleteUser = async (req, res, next) => {
+  const userId = req.params.userId;
   try {
     const currentUserRole = await getRole(req.accountId);
     if (
-      currentUserRole != userRoles.MANAGER
+      currentUserRole != userRoles.MANAGER ||
+      currentUserRole != userRoles.OWNER
     ) {
       const error = new Error(
-        "Chỉ có quản lý mới được xóa nhân viên"
+        "Chỉ có quản lý hoặc chủ rạp mới được xóa nhân viên"
       );
       error.statusCode = 401;
       return next(error);
     }
 
-    const user = await User.findById(staffId);
+    const user = await User.findById(userId);
     if (!user) {
       const error = new Error("Nhân viên không tồn tại");
       error.statusCode = 406;
+      return next(error);
+    }
+
+    if (
+      currentUserRole === userRoles.MANAGER ||
+      user.role === userRoles.MANAGER
+    ) {
+      const error = new Error(
+        "Quản lý chỉ được xóa nhân viên cấp dưới"
+      );
+      error.statusCode = 401;
       return next(error);
     }
 
@@ -111,21 +144,24 @@ exports.deleteStaff = async (req, res, next) => {
   }
 };
 
-exports.deleteSelectedStaff = async (req, res, next) => {
-  const staffIds = req.body.staffIds;
+exports.deleteSelectedUsers = async (req, res, next) => {
+  const userIds = req.body.userIds;
   try {
     const currentUserRole = await getRole(req.accountId);
-    if (currentUserRole != userRoles.MANAGER) {
+    if (
+      currentUserRole != userRoles.MANAGER ||
+      currentUserRole != userRoles.OWNER
+    ) {
       const error = new Error(
-        "Chỉ có quản lý mới được xóa nhân viên"
+        "Chỉ có quản lý hoặc chủ rạp mới được xóa nhân viên"
       );
       error.statusCode = 401;
       return next(error);
     }
 
-    const filteredStaff = await User.find({ _id: { $in: staffIds } });
+    const filteredUsers = await User.find({ _id: { $in: userIds } });
     for (let index = 0; index < filteredUsers.length; index++) {
-      const currentUser = filteredStaff[index];
+      const currentUser = filteredUsers[index];
       currentUser.status = userStatus.NONACTIVE;
       await currentUser.save();
     }
@@ -138,7 +174,7 @@ exports.deleteSelectedStaff = async (req, res, next) => {
   }
 };
 
-exports.editStaff = async (req, res, next) => {
+exports.updateUser = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     const error = new Error(errors.array()[0].msg);
@@ -147,21 +183,38 @@ exports.editStaff = async (req, res, next) => {
     return next(error);
   }
 
-  const staffId = req.params.staffId;
-  const { name, email, phone, address, gender, birthday } = req.body;
+  const userId = req.params.userId;
+  const { role, name, email, phone, address, gender, birthday } = req.body;
 
   try {
     const currentUserRole = await getRole(req.accountId);
-    if (currentUserRole != userRoles.MANAGER && staffId != req.accountId) {
-      const error = new Error("Chỉ có quản lý mới được chỉnh sửa nhân viên");
+    if (
+      currentUserRole !== userRoles.MANAGER &&
+      currentUserRole !== userRoles.OWNER
+    ) {
+      const error = new Error(
+        "Chỉ có quản lý hoặc chủ quán mới được chỉnh sửa nhân viên"
+      );
       error.statusCode = 401;
       return next(error);
     }
 
-    const staff = await User.findById(staffId);
-    if (!staff) {
+    const user = await User.findById(userId);
+    if (!user) {
       const error = new Error("Nhân viên không tồn tại.");
       error.statusCode = 404;
+      return next(error);
+    }
+
+    if (user.role === userRoles.MANAGER && currentUserRole === userRoles.MANAGER) {
+      const error = new Error("Quản lý chỉ được xóa nhân viên cấp dưới");
+      error.statusCode = 401;
+      return next(error);
+    }
+
+    if(user.role !== role && currentUserRole !== userRoles.OWNER){
+      const error = new Error("Chỉ có chủ rạp mới được thay đổi cấp bậc nhân viên");
+      error.statusCode = 401;
       return next(error);
     }
 
@@ -174,17 +227,17 @@ exports.editStaff = async (req, res, next) => {
       }
     }
 
-    staff.name = name;
-    staff.email = email;
-    staff.phone = phone;
-    staff.address = address;
-    staff.gender = gender;
-    staff.birthday = birthday;
-    await staff.save();
+    user.name = name;
+    user.email = email;
+    user.phone = phone;
+    user.address = address;
+    user.gender = gender;
+    user.birthday = birthday;
+    await user.save();
 
     res.status(201).json({
       message: "Cập nhật thông tin thành công",
-      staff
+      user,
     });
   } catch (err) {
     const error = new Error(err.message);
@@ -208,14 +261,20 @@ exports.changePassword = async (req, res, next) => {
   try {
     const user = await User.findById(userId);
     if (!user) {
-      const error = new Error("User không tồn tại.");
+      const error = new Error("Người dùng không tồn tại.");
       error.statusCode = 404;
+      return next(error);
+    }
+
+    if(userId !== req.accountId){
+      const error = new Error("Chỉ có chủ tài khoản mới có thể đổi mật khẩu");
+      error.statusCode = 401;
       return next(error);
     }
 
     const account = await Account.findById(user.account);
     if (!account) {
-      const error = new Error("Account không tồn tại.");
+      const error = new Error("Tài khoản không tồn tại.");
       error.statusCode = 404;
       return next(error);
     }

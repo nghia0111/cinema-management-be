@@ -62,6 +62,6 @@ router.post(
   authController.resetPassword
 );
 
-router.post("/change-password", authController.changePassword);
+router.post("/reset-password/change-password", authController.changePassword);
 
 module.exports = router;
