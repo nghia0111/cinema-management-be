@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
-const { userRoles} = require("../constants");
+const { userRoles, genders, userStatus} = require("../constants");
 
 const userSchema = new Schema({
   role: {
@@ -31,6 +31,7 @@ const userSchema = new Schema({
   },
   gender: {
     type: String,
+    enum: genders,
     required: true,
   },
   birthday: {
@@ -38,7 +39,9 @@ const userSchema = new Schema({
     required: true,
   },
   status: {
-    type: String
+    type: String,
+    enum: userStatus,
+    default: userStatus.ACTIVE
   },
 });
 

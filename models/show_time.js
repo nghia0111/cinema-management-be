@@ -3,7 +3,7 @@ const Schema = mongoose.Schema;
 
 const showTimeSchema = new Schema({
   startTime: {
-    type: String,
+    type: Date,
     require: true,
   },
   room: {
@@ -11,15 +11,11 @@ const showTimeSchema = new Schema({
     ref: "Room",
     require: true,
   },
-  date: {
-    type: Date,
-    require: true
-  },
   movie: {
     type: Schema.Types.ObjectId,
     ref: "Movie",
-    require: true
-  }
+    require: true,
+  },
 });
 
 module.exports = mongoose.model("ShowTime", showTimeSchema);

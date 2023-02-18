@@ -31,7 +31,7 @@ const movieSchemma = new Schema({
     type: String,
     require: true,
   },
-  thumnail: {
+  thumbnail: {
     type: String,
     require: true,
   },
@@ -62,6 +62,10 @@ const movieSchemma = new Schema({
     slug: "name",
     unique: true,
   },
+  trailer: {
+    type: String,
+    require: true,
+  }
 });
 
 module.exports = mongoose.model("Movie", movieSchemma);
