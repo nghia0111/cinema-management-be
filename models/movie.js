@@ -41,7 +41,11 @@ const movieSchemma = new Schema({
       require: true,
     },
   ],
-  time: {
+  duration: {
+    type: Number,
+    require: true,
+  },
+  year: {
     type: Number,
     require: true,
   },
@@ -54,6 +58,10 @@ const movieSchemma = new Schema({
     require: true,
   },
   language: {
+    type: String,
+    require: true,
+  },
+  trailer: {
     type: String,
     require: true,
   },
