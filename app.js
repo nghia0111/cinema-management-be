@@ -30,9 +30,11 @@ app.use((req, res, next) => {
 
 const authRoutes = require("./routes/auth");
 const movieRoutes = require("./routes/movie");
+const userRoutes = require("./routes/user");
 
 app.use("auth", authRoutes);
-app.use(movieRoutes)
+app.use(movieRoutes);
+app.use(userRoutes);
 app.use(helmet());
 app.use(compression());
 

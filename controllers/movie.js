@@ -4,7 +4,7 @@ const Genre = require("../models/genre");
 const Actor = require("../models/actor");
 
 const { getRole } = require("../utils/roles");
-const { roleNames } = require("../constants");
+const { userRoles } = require("../constants");
 
 exports.createMovie = async (req, res, next) => {
   const errors = validationResult(req);
@@ -21,17 +21,19 @@ exports.createMovie = async (req, res, next) => {
     genres,
     actors,
     director,
-    thumnail,
+    thumbnail,
     images,
     time,
     premiereDay,
+    endDay,
     language,
+    trailer
   } = req.body;
   try {
     const role = await getRole(req.accountId);
-    if (role != roleNames.STAFF && role != roleNames.MANAGER) {
+    if (role != userRoles.STAFF && role != userRoles.MANAGER && role != userRoles.OWNER) {
       const error = new Error(
-        "Chỉ có quản lý hoặc nhân viên mới được thêm phim"
+        "Chỉ có quản lý, nhân viên hoặc chủ rạp mới được thêm phim"
       );
       error.statusCode = 401;
       return next(error);
@@ -43,11 +45,13 @@ exports.createMovie = async (req, res, next) => {
       genres,
       actors,
       director,
-      thumnail,
+      thumbnail,
       images,
       time,
       premiereDay,
+      endDay,
       language,
+      trailer
     });
     await _movie.save();
 
@@ -96,17 +100,23 @@ exports.updateMovie = async (req, res, next) => {
     genres,
     actors,
     director,
-    thumnail,
+    thumbnail,
     images,
     time,
     premiereDay,
+    endDay,
     language,
+    trailer
   } = req.body;
   try {
     const role = await getRole(req.accountId);
-    if (role != roleNames.STAFF && role != roleNames.MANAGER) {
+    if (
+      role != userRoles.STAFF &&
+      role != userRoles.MANAGER &&
+      role != userRoles.OWNER
+    ) {
       const error = new Error(
-        "Chỉ có quản lý hoặc nhân viên mới được chỉnh sửa phim"
+        "Chỉ có quản lý, nhân viên hoặc chủ rạp mới được chỉnh sửa phim"
       );
       error.statusCode = 401;
       return next(error);
@@ -147,11 +157,13 @@ exports.updateMovie = async (req, res, next) => {
     currentMovie.genres = genres;
     currentMovie.actors = actors;
     currentMovie.director = director;
-    currentMovie.thumnail = thumnail;
+    currentMovie.thumbnail = thumbnail;
     currentMovie.images = images;
     currentMovie.time = time;
     currentMovie.premiereDay = premiereDay;
+    currentMovie.endDay = endDay;
     currentMovie.language = language;
+    currentMovie.trailer = trailer;
     await currentMovie.save();
 
     for (let actor of addedActors) {
@@ -186,9 +198,13 @@ exports.deleteMovie = async (req, res, next) => {
   const movieId = req.params.movieId;
   try {
     const role = await getRole(req.accountId);
-    if (role !== roleNames.STAFF && role !== roleNames.MANAGER) {
+    if (
+      role != userRoles.STAFF &&
+      role != userRoles.MANAGER &&
+      role != userRoles.OWNER
+    ) {
       const error = new Error(
-        "Chỉ có nhân viên hoặc quản lý mới được xóa phim"
+        "Chỉ có quản lý, nhân viên hoặc chủ rạp mới được xóa phim"
       );
       error.statusCode = 401;
       return next(error);
@@ -227,7 +243,7 @@ exports.deleteMovie = async (req, res, next) => {
 
 exports.getMovies = async (req, res, next) => {
   try {
-    const movies = await Movie.find();
+    const movies = await Movie.find().populate("genres").populate("actors");
 
     res.status(200).json({ movies });
   } catch (err) {
@@ -240,7 +256,7 @@ exports.getMovies = async (req, res, next) => {
 exports.getMovieById = async (req, res, next) => {
   const movieId = req.params.movieId;
   try {
-    const _movie = await Product.findById(movieId).populate("genre");
+    const _movie = await Product.findById(movieId).populate("genres").populate("actors");
     if (!_movie) {
       const error = new Error("Phim không tồn tại");
       error.statusCode = 406;
