@@ -6,7 +6,7 @@ const genreSchema = new Schema({
         type: String,
         require: true
     },
-    movies: [{type: Schema.Types.ObjectId, require: true}]
+    movies: [{type: Schema.Types.ObjectId}]
 })
 
 module.exports = mongoose.model("Genre", genreSchema);
