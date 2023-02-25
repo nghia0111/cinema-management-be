@@ -33,12 +33,14 @@ const movieRoutes = require("./routes/movie");
 const userRoutes = require("./routes/user");
 const genreRoutes = require("./routes/genre");
 const roomTypeRoutes = require("./routes/room_type");
+const actorRoutes = require("./routes/actor");
 
 app.use("auth", authRoutes);
 app.use(movieRoutes);
 app.use(userRoutes);
 app.use(genreRoutes);
 app.use(roomTypeRoutes);
+app.use(actorRoutes);
 app.use(helmet());
 app.use(compression());
 

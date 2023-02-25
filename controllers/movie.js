@@ -233,6 +233,7 @@ exports.deleteMovie = async (req, res, next) => {
       }
       existingActor.movies.pull(_movie._id.toString());
     }
+    await Movie.findByIdAndRemove(movieId)
     res.status(200).json({ message: "Xoá phim thành công" });
   } catch (err) {
     const error = new Error(err.message);
@@ -256,7 +257,7 @@ exports.getMovies = async (req, res, next) => {
 exports.getMovieById = async (req, res, next) => {
   const movieId = req.params.movieId;
   try {
-    const _movie = await Product.findById(movieId).populate("genres").populate("actors");
+    const _movie = await Movie.findById(movieId).populate("genres").populate("actors");
     if (!_movie) {
       const error = new Error("Phim không tồn tại");
       error.statusCode = 406;
