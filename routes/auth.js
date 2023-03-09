@@ -62,6 +62,11 @@ router.post(
   authController.resetPassword
 );
 
-router.post("/reset-password/change-password", authController.changePassword);
+router.post("/reset-password/change-password", body("confirmPassword").custom((value, { req }) => {
+      if (value !== req.body.password) {
+        throw new Error("Xác nhận mật khẩu không trùng khớp");
+      }
+      return true;
+    }), authController.changePassword);
 
 module.exports = router;

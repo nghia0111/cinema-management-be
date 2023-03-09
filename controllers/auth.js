@@ -132,7 +132,7 @@ exports.resetPassword = async (req, res, next) => {
         dynamicTemplateData: {
           token: token,
           userName: user.name,
-          accountId: req.accountId
+          accountId: account._id.toString()
         },
       });
 
@@ -148,7 +148,7 @@ exports.resetPassword = async (req, res, next) => {
 };
 
 exports.changePassword = async (req, res, next) => {
-  const { password: newPassword, passwordToken, accountId } = req.body;
+  const { password, passwordToken, accountId } = req.body;
 
   try {
     const account = await Account.findOne({
@@ -165,7 +165,7 @@ exports.changePassword = async (req, res, next) => {
       return next(err);
     }
 
-    const hashedPassword = bcryptjs.hashSync(newPassword, 12);
+    const hashedPassword = bcryptjs.hashSync(password, 12);
     account.password = hashedPassword;
     account.resetToken = undefined;
     account.resetTokenExpiration = undefined;
