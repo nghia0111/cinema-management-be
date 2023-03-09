@@ -59,10 +59,11 @@ exports.createUser = async (req, res, next) => {
 
     sgMail.send({
       to: email,
-      from: "20521659@gm.uit.edu.vn",
+      from: process.env.EMAIL,
       templateId: process.env.SG_SEND_PASSWORD_TEMPLATE_ID,
       dynamicTemplateData: {
         randomPassword,
+        userName: user.name
       },
     });
 
@@ -126,9 +127,7 @@ exports.deleteUser = async (req, res, next) => {
       currentUserRole === userRoles.MANAGER ||
       user.role === userRoles.MANAGER
     ) {
-      const error = new Error(
-        "Quản lý chỉ được xóa nhân viên cấp dưới"
-      );
+      const error = new Error("Quản lý chỉ được xóa nhân viên cấp dưới");
       error.statusCode = 401;
       return next(error);
     }
@@ -206,14 +205,19 @@ exports.updateUser = async (req, res, next) => {
       return next(error);
     }
 
-    if (user.role === userRoles.MANAGER && currentUserRole === userRoles.MANAGER) {
+    if (
+      user.role === userRoles.MANAGER &&
+      currentUserRole === userRoles.MANAGER
+    ) {
       const error = new Error("Quản lý chỉ được xóa nhân viên cấp dưới");
       error.statusCode = 401;
       return next(error);
     }
 
-    if(user.role !== role && currentUserRole !== userRoles.OWNER){
-      const error = new Error("Chỉ có chủ rạp mới được thay đổi cấp bậc nhân viên");
+    if (user.role !== role && currentUserRole !== userRoles.OWNER) {
+      const error = new Error(
+        "Chỉ có chủ rạp mới được thay đổi cấp bậc nhân viên"
+      );
       error.statusCode = 401;
       return next(error);
     }
@@ -266,7 +270,7 @@ exports.changePassword = async (req, res, next) => {
       return next(error);
     }
 
-    if(userId !== req.accountId){
+    if (userId !== req.accountId) {
       const error = new Error("Chỉ có chủ tài khoản mới có thể đổi mật khẩu");
       error.statusCode = 401;
       return next(error);

@@ -1,11 +1,11 @@
 const { validationResult } = require("express-validator");
-const RoomType = require("../models/room_type");
-const Room = require("../models/room");
+const Item = require("../models/item");
 
 const { getRole } = require("../utils/roles");
 const { userRoles } = require("../constants");
+const cloudinary = require("../utils/cloudinaryConfig");
 
-exports.createRoomType = async (req, res, next) => {
+exports.createItem = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     const error = new Error(errors.array()[0].msg);
@@ -14,7 +14,7 @@ exports.createRoomType = async (req, res, next) => {
     return next(error);
   }
 
-  const { name } = req.body;
+  const { name, image, price } = req.body;
   try {
     const role = await getRole(req.accountId);
     if (
@@ -23,18 +23,24 @@ exports.createRoomType = async (req, res, next) => {
       role != userRoles.OWNER
     ) {
       const error = new Error(
-        "Chỉ có quản lý, nhân viên hoặc chủ rạp mới được thêm loại phòng"
+        "Chỉ có quản lý, nhân viên hoặc chủ rạp mới được thêm đồ ăn nhẹ"
       );
       error.statusCode = 401;
       return next(error);
     }
 
-    const type = new RoomType({
-      name,
-    });
-    await type.save();
+    const res = await cloudinary.uploader.upload(image, {folder: "cinema-app/items"});
 
-    res.status(201).json({ message: "Thêm loại phòng thành công" });
+    const _item = new Item({
+      name,
+      image: {imageUrl: res.secure_url, imageId: res.public_id},
+      price
+    });
+    await _item.save();
+
+    res
+      .status(201)
+      .json({ message: "Thêm sản phẩm thành công", item: item });
   } catch (err) {
     const error = new Error(err.message);
     error.statusCode = 500;
@@ -42,7 +48,7 @@ exports.createRoomType = async (req, res, next) => {
   }
 };
 
-exports.updateRoomType = async (req, res, next) => {
+exports.updateItem = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     const error = new Error(errors.array()[0].msg);
@@ -51,9 +57,9 @@ exports.updateRoomType = async (req, res, next) => {
     return next(error);
   }
 
-  const roomTypeId = req.params.roomTypeId;
+  const itemId = req.params.itemId;
 
-  const { name } = req.body;
+  const { name, image, price } = req.body;
   try {
     const role = await getRole(req.accountId);
     if (
@@ -62,26 +68,27 @@ exports.updateRoomType = async (req, res, next) => {
       role != userRoles.OWNER
     ) {
       const error = new Error(
-        "Chỉ có quản lý, nhân viên hoặc chủ rạp mới được chỉnh sửa loại phòng"
+        "Chỉ có quản lý, nhân viên hoặc chủ rạp mới được chỉnh sửa đồ ăn nhẹ"
       );
       error.statusCode = 401;
       return next(error);
     }
 
-    const currentRoomType = await RoomType.findById(roomTypeId);
-    if (!currentRoomType) {
-      const err = new Error("Không tìm thấy loại phòng");
+    const currentItem = await Item.findById(itemId);
+    if (!currentItem) {
+      const err = new Error("Không tìm thấy sản phẩm");
       err.statusCode = 406;
       next(err);
     }
 
-    currentRoomType.name = name;
-    await currentRoomType.save();
+    currentItem.name = name;
+    currentItem.image = image;
+    currentItem.price = price;
+    await currentItem.save();
 
-    res.status(200).json({
-      message: "Chỉnh sửa loại phòng thành công",
-      roomType: currentRoomType,
-    });
+    res
+      .status(200)
+      .json({ message: "Chỉnh sửa sản phẩm thành công", item: currentItem });
   } catch (err) {
     const error = new Error(err.message);
     error.statusCode = 500;
@@ -89,8 +96,8 @@ exports.updateRoomType = async (req, res, next) => {
   }
 };
 
-exports.deleteRoomType = async (req, res, next) => {
-  const roomTypeId = req.params.roomTypeId;
+exports.deleteItem = async (req, res, next) => {
+  const itemId = req.params.itemId;
   try {
     const role = await getRole(req.accountId);
     if (
@@ -99,27 +106,13 @@ exports.deleteRoomType = async (req, res, next) => {
       role != userRoles.OWNER
     ) {
       const error = new Error(
-        "Chỉ có quản lý, nhân viên hoặc chủ rạp mới được xóa phòng"
+        "Chỉ có quản lý, nhân viên hoặc chủ rạp mới được xóa đồ ăn nhẹ"
       );
       error.statusCode = 401;
       return next(error);
     }
-    const roomType = await RoomType.findById(roomTypeId);
-    if (!roomType) {
-      const error = new Error("Loại phòng không tồn tại");
-      error.statusCode = 406;
-      return next(error);
-    }
-    const rooms = await Room.find({ roomType: roomTypeId });
-    if (rooms) {
-      const error = new Error(
-        "Không thể xóa loại phòng do vẫn còn phòng thuộc loại này"
-      );
-      error.statusCode = 422;
-      return next(error);
-    }
-    await RoomType.findByIdAndRemove(roomTypeId);
-    res.status(200).json({ message: "Xoá loại phòng thành công" });
+    await Item.findByIdAndRemove(itemId);
+    res.status(200).json({ message: "Xoá sản phẩm thành công" });
   } catch (err) {
     const error = new Error(err.message);
     error.statusCode = 500;
@@ -127,11 +120,11 @@ exports.deleteRoomType = async (req, res, next) => {
   }
 };
 
-exports.getRoomTypes = async (req, res, next) => {
+exports.getItems = async (req, res, next) => {
   try {
-    const roomTypes = await RoomType.find();
+    const items = await Item.find();
 
-    res.status(200).json({ roomTypes });
+    res.status(200).json({ items });
   } catch (err) {
     const error = new Error(err.message);
     error.statusCode = 500;

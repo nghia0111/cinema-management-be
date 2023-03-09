@@ -29,6 +29,8 @@ exports.login = async (req, res, next) => {
       return next(error);
     }
 
+    const currentUser = await User.findOne({account: account._id.toString()});
+
     const token = jwt.sign(
       {
         username: account.username,
@@ -40,7 +42,7 @@ exports.login = async (req, res, next) => {
 
     const role = await getRole(account._id.toString());
 
-    res.status(200).json({ token, accountId: account._id.toString(), role });
+    res.status(200).json({ token, user: currentUser });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
@@ -130,10 +132,11 @@ exports.resetPassword = async (req, res, next) => {
 
       sgMail.send({
         to: req.body.email,
-        from: "20521659@gm.uit.edu.vn",
+        from: process.env.EMAIL,
         templateId: process.env.SG_RESET_PASSWORD_TEMPLATE_ID,
         dynamicTemplateData: {
           token: token,
+          userName: user.name
         },
       });
 

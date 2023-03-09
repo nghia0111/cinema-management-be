@@ -254,10 +254,10 @@ exports.getMovies = async (req, res, next) => {
   }
 };
 
-exports.getMovieById = async (req, res, next) => {
-  const movieId = req.params.movieId;
+exports.getMovieBySlug = async (req, res, next) => {
+  const movieSlug = req.params.movieSlug;
   try {
-    const _movie = await Movie.findById(movieId).populate("genres").populate("actors");
+    const _movie = await Movie.findOne({slug: movieSlug}).populate("genres").populate("actors");
     if (!_movie) {
       const error = new Error("Phim không tồn tại");
       error.statusCode = 406;

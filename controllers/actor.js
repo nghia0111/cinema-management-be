@@ -149,11 +149,13 @@ exports.getActors = async (req, res, next) => {
   }
 };
 
-exports.getActorById = async (req, res, next) => {
-  const actorId = req.params.actorId;
+exports.getActorBySlug = async (req, res, next) => {
+  const actorSlug = req.params.actorSlug;
   try {
-    const _actor = await Actor.findById(actorId)
-      .populate("movies", "name");
+    const _actor = await Actor.findOne({ slug: actorSlug }).populate(
+      "movies",
+      "name"
+    );
     if (!_movie) {
       const error = new Error("Diễn viên không tồn tại");
       error.statusCode = 406;
@@ -167,3 +169,24 @@ exports.getActorById = async (req, res, next) => {
     next(error);
   }
 };
+
+// exports.createAccount = async () => {
+//   const account0 = new Account({
+//     username: "phuquang147",
+//     password: bcryptjs.hashSync("phuquang", 12),
+//   });
+//   await account0.save();
+
+//   const admin = new User({
+//     role: userRoles.OWNER,
+//     account: account0._id,
+//     name: "Phú Quang",
+//     address: "Linh Trung, Thủ Đức",
+//     email: "phuquang14722@gmail.com",
+//     phone: "0312312312",
+//     gender: genders.MALE,
+//     birthday: new Date(),
+//   });
+//   await admin.save();
+//   console.log("test");
+// };
