@@ -11,19 +11,10 @@ const roomSchema = new Schema({
     ref: "RoomType",
     require: true,
   },
-  seats: {
+  seats: [[{
     type: Schema.Types.ObjectId,
     ref: "Seat",
-    require: true,
-  },
-  row: {
-    type: Number,
-    require: true,
-  },
-  column: {
-    type: Number,
-    require: true,
-  },
+  }]],
 });
 
 module.exports = mongoose.model("Room", roomSchema);

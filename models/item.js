@@ -7,8 +7,14 @@ const itemSchema = new Schema({
     require: true,
   },
   image: {
-    type: String,
-    require: true,
+    imageUrl: {
+      type: String,
+      require: true,
+    },
+    imageId: {
+      type: String,
+      require: true,
+    },
   },
   price: {
     type: Number,
