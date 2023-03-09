@@ -131,13 +131,13 @@ exports.resetPassword = async (req, res, next) => {
         templateId: process.env.SG_RESET_PASSWORD_TEMPLATE_ID,
         dynamicTemplateData: {
           token: token,
-          userName: user.name
+          userName: user.name,
+          accountId: req.accountId
         },
       });
 
       res.status(200).json({
         message: "Gửi yêu cầu khôi phục mật khẩu thành công",
-        accountId: account._id,
       });
     } catch (err) {
       const error = new Error("Có lỗi xảy ra, vui lòng thử lại sau");
