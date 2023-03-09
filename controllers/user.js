@@ -9,7 +9,7 @@ const { userRoles, userStatus } = require("../constants");
 
 const { getRole } = require("../utils/roles");
 
-sgMail.setApiKey(process.env.SG_API_KEY);
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 exports.createUser = async (req, res, next) => {
   const errors = validationResult(req);
