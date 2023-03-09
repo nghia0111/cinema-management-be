@@ -14,7 +14,7 @@ const actorValidation = [
 
 router.get("/actors", isAuth, actorController.getActors);
 
-router.get("/actors/:actorId", isAuth, actorController.getActorById);
+router.get("/actors/:actorSlug", isAuth, actorController.getActorBySlug);
 
 router.post("/actors", isAuth, actorValidation, actorController.createActor);
 
