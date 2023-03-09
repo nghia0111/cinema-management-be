@@ -2,9 +2,7 @@ const bcryptjs = require("bcryptjs");
 const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 const { validationResult } = require("express-validator");
-const sgMail = require("@sendgrid/mail");
-
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+const sgMail = require("../utils/sendGridConfig");
 
 const Account = require("../models/account");
 const User = require("../models/user");

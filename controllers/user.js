@@ -1,15 +1,12 @@
 const { validationResult } = require("express-validator");
-const sgMail = require("@sendgrid/mail");
 const bcryptjs = require("bcryptjs");
-
+const sgMail = require("../utils/sendGridConfig");
 const User = require("../models/user");
 const Account = require("../models/account");
 
 const { userRoles, userStatus } = require("../constants");
 
 const { getRole } = require("../utils/roles");
-
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 exports.createUser = async (req, res, next) => {
   const errors = validationResult(req);
