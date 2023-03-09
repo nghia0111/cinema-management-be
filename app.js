@@ -57,7 +57,6 @@ mongoose.set("strictQuery", false);
 mongoose
   .connect(
     `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0.zzngyvy.mongodb.net/${process.env.MONGO_DATABASE}?retryWrites=true&w=majority`
-    // "mongodb+srv://cinema-admin:awl8b6Xh48QshI84@cluster0.zzngyvy.mongodb.net/cinema-app?retryWrites=true&w=majority"
   )
   .then((result) => {
     app.listen(process.env.PORT || 3001);
