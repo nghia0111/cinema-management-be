@@ -34,7 +34,9 @@ exports.createGenre = async (req, res, next) => {
     });
     await genre.save();
 
-    res.status(201).json({ message: "Thêm thể loại phim thành công" });
+    const genres = await Genre.find();
+
+    res.status(201).json({ message: "Thêm thể loại phim thành công", genres: genres});
   } catch (err) {
     const error = new Error(err.message);
     error.statusCode = 500;
@@ -129,8 +131,9 @@ exports.deleteGenre = async (req, res, next) => {
       movie.genres.pull(genreId);
       await movie.save();
     }
-    await Movie.findByIdAndRemove(genreId);
-    res.status(200).json({ message: "Xoá thể loại phim thành công" });
+    await Genre.findByIdAndRemove(genreId);
+    const genres = await Genre.find();
+    res.status(200).json({ message: "Xoá thể loại phim thành công", genres: genres });
   } catch (err) {
     const error = new Error(err.message);
     error.statusCode = 500;
