@@ -1,6 +1,9 @@
 const { validationResult } = require("express-validator");
 const Movie = require("../models/movie");
 const Actor = require("../models/actor");
+// const Account = require("../models/account");
+// const User = require("../models/user")
+// const bcryptjs = require("bcryptjs");
 
 const { getRole } = require("../utils/roles");
 const { userRoles } = require("../constants");
@@ -179,7 +182,7 @@ exports.getActorBySlug = async (req, res, next) => {
 
 //   const admin = new User({
 //     role: userRoles.OWNER,
-//     account: account0._id,
+//     account: account0._id.toString(),
 //     name: "Phú Quang",
 //     address: "Linh Trung, Thủ Đức",
 //     email: "phuquang14722@gmail.com",
@@ -188,5 +191,6 @@ exports.getActorBySlug = async (req, res, next) => {
 //     birthday: new Date(),
 //   });
 //   await admin.save();
-//   console.log("test");
+//   console.log(account0);
+//   console.log(admin);
 // };

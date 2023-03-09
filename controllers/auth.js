@@ -28,8 +28,7 @@ exports.login = async (req, res, next) => {
       error.statusCode = 401;
       return next(error);
     }
-
-    const currentUser = await User.findOne({account: account._id.toString()});
+    const currentUser = await User.findOne({"account": account._id});
 
     const token = jwt.sign(
       {
@@ -39,8 +38,6 @@ exports.login = async (req, res, next) => {
       "secret",
       { expiresIn: "1h" }
     );
-
-    const role = await getRole(account._id.toString());
 
     res.status(200).json({ token, user: currentUser });
   } catch (err) {

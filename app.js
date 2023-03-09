@@ -5,6 +5,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 
 const mongoose = require("mongoose");
+// const actorController = require("./controllers/actor")
 
 const helmet = require("helmet");
 const compression = require("compression");
@@ -37,7 +38,7 @@ const actorRoutes = require("./routes/actor");
 const itemRoutes = require("./routes/item");
 const roomRoutes = require("./routes/room");
 
-app.use("auth", authRoutes);
+app.use("/auth", authRoutes);
 app.use(movieRoutes);
 app.use(userRoutes);
 app.use(genreRoutes);
@@ -47,6 +48,8 @@ app.use(itemRoutes);
 app.use(roomRoutes);
 app.use(helmet());
 app.use(compression());
+
+// actorController.createAccount();
 
 app.use((err, req, res, next) => {
   const { statusCode, message, data, validationErrors } = err;
@@ -59,7 +62,7 @@ mongoose
     `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0.zzngyvy.mongodb.net/${process.env.MONGO_DATABASE}?retryWrites=true&w=majority`
   )
   .then((result) => {
-    app.listen(process.env.PORT || 3001);
+    app.listen(process.env.PORT || 3002);
   })
   .catch((err) => {
     console.log(err);
