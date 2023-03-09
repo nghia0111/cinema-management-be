@@ -8,6 +8,7 @@ const Account = require("../models/account");
 const User = require("../models/user");
 const { getRole } = require("../utils/roles");
 const { userRoles } = require("../constants");
+const mongoose = require("mongoose");
 
 exports.login = async (req, res, next) => {
   const { username, password } = req.body;
@@ -154,7 +155,7 @@ exports.changePassword = async (req, res, next) => {
     const account = await Account.findOne({
       resetToken: passwordToken,
       resetTokenExpiration: { $gt: Date.now() },
-      _id: accountId,
+      _id: mongoose.Types.ObjectId(accountId),
     });
 
     if (!account) {
