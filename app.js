@@ -8,7 +8,7 @@ const mongoose = require("mongoose");
 
 const helmet = require("helmet");
 const compression = require("compression");
-const { v4: uuidv4 } = require("uuid");
+require("dotenv").config();
 
 const app = express();
 
@@ -34,6 +34,8 @@ const userRoutes = require("./routes/user");
 const genreRoutes = require("./routes/genre");
 const roomTypeRoutes = require("./routes/room_type");
 const actorRoutes = require("./routes/actor");
+const itemRoutes = require("./routes/item");
+const roomRoutes = require("./routes/room");
 
 app.use("auth", authRoutes);
 app.use(movieRoutes);
@@ -41,6 +43,8 @@ app.use(userRoutes);
 app.use(genreRoutes);
 app.use(roomTypeRoutes);
 app.use(actorRoutes);
+app.use(itemRoutes);
+app.use(roomRoutes);
 app.use(helmet());
 app.use(compression());
 
@@ -49,13 +53,11 @@ app.use((err, req, res, next) => {
   res.status(statusCode || 500).json({ message, data, validationErrors });
 });
 
-// const { generateFakeData, removeAllData } = require("./util/fakeData");
-//  removeAllData();
-// generateFakeData();
 mongoose.set("strictQuery", false);
 mongoose
   .connect(
     `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0.zzngyvy.mongodb.net/${process.env.MONGO_DATABASE}?retryWrites=true&w=majority`
+    // "mongodb+srv://cinema-admin:awl8b6Xh48QshI84@cluster0.zzngyvy.mongodb.net/cinema-app?retryWrites=true&w=majority"
   )
   .then((result) => {
     app.listen(process.env.PORT || 3001);

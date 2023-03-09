@@ -22,8 +22,15 @@ const genders = {
   OTHER: "Khác"
 }
 
+const seatTypes = {
+  SINGLE: "Ghế đơn",
+  DOUBLE: "Ghế đôi",
+  NONE: "Trống",
+};
+
 module.exports = {
   userRoles,
   userStatus,
-  genders
+  genders,
+  seatTypes
 };
