@@ -28,9 +28,21 @@ const seatTypes = {
   NONE: "Trống",
 };
 
+const roomStatus = {
+  ACTIVE: "Đang dùng",
+  NONACTIVE: "Tạm nghỉ"
+}
+
+const movieStatus = {
+  ACTIVE: "Đang chiếu",
+  NONACTIVE: "Tạm nghỉ",
+};
+
 module.exports = {
   userRoles,
   userStatus,
   genders,
-  seatTypes
+  seatTypes,
+  roomStatus,
+  movieStatus
 };

@@ -3,7 +3,6 @@ const Item = require("../models/item");
 
 const { getRole } = require("../utils/roles");
 const { userRoles } = require("../constants");
-const cloudinary = require("../utils/cloudinaryConfig");
 
 exports.createItem = async (req, res, next) => {
   const errors = validationResult(req);
@@ -29,18 +28,18 @@ exports.createItem = async (req, res, next) => {
       return next(error);
     }
 
-    const res = await cloudinary.uploader.upload(image, {folder: "cinema-app/items"});
-
     const _item = new Item({
       name,
-      image: {imageUrl: res.secure_url, imageId: res.public_id},
+      image,
       price
     });
     await _item.save();
 
+    const items = await Item.find();
+
     res
       .status(201)
-      .json({ message: "Thêm sản phẩm thành công", item: item });
+      .json({ message: "Thêm sản phẩm thành công", items: items });
   } catch (err) {
     const error = new Error(err.message);
     error.statusCode = 500;
@@ -86,9 +85,11 @@ exports.updateItem = async (req, res, next) => {
     currentItem.price = price;
     await currentItem.save();
 
+    const items = await Item.find();
+
     res
       .status(200)
-      .json({ message: "Chỉnh sửa sản phẩm thành công", item: currentItem });
+      .json({ message: "Chỉnh sửa sản phẩm thành công", items: items });
   } catch (err) {
     const error = new Error(err.message);
     error.statusCode = 500;
@@ -112,7 +113,9 @@ exports.deleteItem = async (req, res, next) => {
       return next(error);
     }
     await Item.findByIdAndRemove(itemId);
-    res.status(200).json({ message: "Xoá sản phẩm thành công" });
+
+    const items = await Item.find();
+    res.status(200).json({ message: "Xoá sản phẩm thành công", items: items });
   } catch (err) {
     const error = new Error(err.message);
     error.statusCode = 500;
