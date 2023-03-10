@@ -34,21 +34,30 @@ router.post(
         error.statusCode = 400;
         return next(error);
       }
-      const result = await cloudinary.uploader
-        .upload_stream({
-          folder: "cinema-app",
-          invalidate: true,
-        })
+      let filePath;
+      await cloudinary.uploader
+        .upload_stream(
+          {
+            folder: "cinema-app",
+            invalidate: true,
+          },
+          (err, result) => {
+            if (err) {
+              const error = new Error("Tải ảnh thất bại");
+              error.statusCode = 500;
+              next(error);
+            }
+            filePath = result.secure_url;
+            return res.status(201).json({
+              message: "Lưu ảnh thành công",
+              filePath,
+            });
+          }
+        )
         .end(req.file.buffer);
-
-      const filePath = result.secure_url;
-
-      return res.status(201).json({
-        message: "Lưu ảnh thành công",
-        filePath,
-      });
     } catch (err) {
-      next(err);
+      const error = new Error(err.message);
+      next(error);
     }
   }
 );
