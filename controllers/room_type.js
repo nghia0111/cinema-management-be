@@ -33,8 +33,9 @@ exports.createRoomType = async (req, res, next) => {
       name,
     });
     await type.save();
+    const roomTypes = await RoomType.find();
 
-    res.status(201).json({ message: "Thêm loại phòng thành công" });
+    res.status(201).json({ message: "Thêm loại phòng thành công" , roomTypes: roomTypes});
   } catch (err) {
     const error = new Error(err.message);
     error.statusCode = 500;
@@ -77,10 +78,11 @@ exports.updateRoomType = async (req, res, next) => {
 
     currentRoomType.name = name;
     await currentRoomType.save();
+    const roomTypes = await RoomType.find();
 
     res.status(200).json({
       message: "Chỉnh sửa loại phòng thành công",
-      roomType: currentRoomType,
+      roomTypes: roomTypes,
     });
   } catch (err) {
     const error = new Error(err.message);
@@ -119,7 +121,8 @@ exports.deleteRoomType = async (req, res, next) => {
       return next(error);
     }
     await RoomType.findByIdAndRemove(roomTypeId);
-    res.status(200).json({ message: "Xoá loại phòng thành công" });
+    const roomTypes = await RoomType.find();
+    res.status(200).json({ message: "Xoá loại phòng thành công", roomTypes: roomTypes });
   } catch (err) {
     const error = new Error(err.message);
     error.statusCode = 500;

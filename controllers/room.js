@@ -5,7 +5,7 @@ const Seat = require("../models/seat");
 const ShowTime = require("../models/show_time");
 
 const { getRole } = require("../utils/roles");
-const { userRoles } = require("../constants");
+const { userRoles, roomStatus } = require("../constants");
 
 exports.createRoom = async (req, res, next) => {
   const errors = validationResult(req);
@@ -52,8 +52,9 @@ exports.createRoom = async (req, res, next) => {
     }
     room.seats = seats;
     await room.save();
+    const rooms = await Room.find({ status: roomStatus.ACTIVE });
 
-    res.status(201).json({ message: "Thêm phòng thành công" });
+    res.status(201).json({ message: "Thêm phòng thành công", rooms: rooms });
   } catch (err) {
     const error = new Error(err.message);
     error.statusCode = 500;
@@ -97,10 +98,11 @@ exports.updateRoom = async (req, res, next) => {
     currentRoom.name = name;
     currentRoom.roomType = roomType;
     await currentRoom.save();
+    const rooms = await Room.find({ status: roomStatus.ACTIVE });
 
     res.status(200).json({
       message: "Chỉnh sửa phòng thành công",
-      room: currentRoom,
+      rooms: rooms,
     });
   } catch (err) {
     const error = new Error(err.message);
@@ -142,10 +144,9 @@ exports.deleteRoom = async (req, res, next) => {
       error.statusCode = 422;
       return next(error);
     }
-    await Seat.deleteMany({ room: roomId });
-    await Room.findByIdAndRemove(roomId);
-    const rooms = await Room.find();
-    res.status(200).json({ message: "Xoá phòng thành công", roomsList: rooms });
+    await Room.findByIdAndUpdate({_id: roomId}, {status: roomStatus.NONACTIVE});
+    const rooms = await Room.find({status: roomStatus.ACTIVE});
+    res.status(200).json({ message: "Xoá phòng thành công", rooms: rooms });
   } catch (err) {
     const error = new Error(err.message);
     error.statusCode = 500;
@@ -155,7 +156,7 @@ exports.deleteRoom = async (req, res, next) => {
 
 exports.getRooms = async (req, res, next) => {
   try {
-    const rooms = await Room.find();
+    const rooms = await Room.find({status: roomStatus.ACTIVE});
 
     res.status(200).json({ rooms });
   } catch (err) {
@@ -168,7 +169,7 @@ exports.getRooms = async (req, res, next) => {
 exports.getRoomsByTypeId = async (req, res, next) => {
   const { roomType } = req.body;
   try {
-    const rooms = await Room.find({roomType: roomType});
+    const rooms = await Room.find({roomType: roomType, status: roomStatus.ACTIVE});
 
     res.status(200).json({ rooms });
   } catch (err) {

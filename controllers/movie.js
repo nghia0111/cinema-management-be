@@ -2,9 +2,10 @@ const { validationResult } = require("express-validator");
 const Movie = require("../models/movie");
 const Genre = require("../models/genre");
 const Actor = require("../models/actor");
+const ShowTime = require("../models/show_time")
 
 const { getRole } = require("../utils/roles");
-const { userRoles } = require("../constants");
+const { userRoles, movieStatus } = require("../constants");
 
 exports.createMovie = async (req, res, next) => {
   const errors = validationResult(req);
@@ -65,17 +66,9 @@ exports.createMovie = async (req, res, next) => {
       existingActor.movies.push(_movie._id.toString());
     }
 
-    for (let genre of genres) {
-      const existingGenre = await Genre.findById(genre);
-      if (!existingGenre) {
-        const err = new Error("Không tìm thấy thể loại");
-        err.statusCode = 406;
-        return next(err);
-      }
-      existingGenre.movies.push(_movie._id.toString());
-    }
+    const movies = await Movie.find()
 
-    res.status(201).json({ message: "Thêm phim thành công", movie: _movie });
+    res.status(201).json({ message: "Thêm phim thành công", movies: movies });
   } catch (err) {
     const error = new Error(err.message);
     error.statusCode = 500;
@@ -129,17 +122,6 @@ exports.updateMovie = async (req, res, next) => {
       next(err);
     }
 
-    const removedGenres = currentMovie.genres.reduce(
-      (accumulatedGenres, genre) => {
-        if (!genres.includes(genre)) accumulatedGenres.push(genre);
-        return accumulatedGenres;
-      },
-      []
-    );
-    const addedGenres = genres.reduce((accumulatedGenres, genre) => {
-      if (!currentMovie.genres.includes(genre)) accumulatedGenres.push(genre);
-      return accumulatedGenres;
-    }, []);
     const removedActors = currentMovie.actors.reduce(
       (accumulatedActors, actor) => {
         if (!actors.includes(actor)) accumulatedActors.push(actor);
@@ -175,18 +157,11 @@ exports.updateMovie = async (req, res, next) => {
       existingActor.movies.pull(currentMovie._id);
     }
 
-    for (let genre of addedGenres) {
-      const existingGenre = await Genre.findById(genre);
-      existingGenre.movies.push(currentMovie._id);
-    }
-    for (let genre of removedGenres) {
-      const existingGenre = await Genre.findById(genre);
-      existingGenre.movies.pull(currentMovie._id);
-    }
+    const movies = await Movie.find();
 
     res
       .status(200)
-      .json({ message: "Chỉnh sửa phim thành công", movie: currentMovie });
+      .json({ message: "Chỉnh sửa phim thành công", movies: movies });
   } catch (err) {
     const error = new Error(err.message);
     error.statusCode = 500;
@@ -215,15 +190,20 @@ exports.deleteMovie = async (req, res, next) => {
       error.statusCode = 406;
       return next(error);
     }
-    for (let genre of _movie.genres) {
-      const existingGenre = await Genre.findById(genre);
-      if (!existingGenre) {
-        const error = new Error("Thể loại không tồn tại");
-        error.statusCode = 406;
-        return next(error);
-      }
-      existingGenre.movies.pull(_movie._id.toString());
+
+    const upcomingShowTime = await ShowTime.findOne({movie: movieId, startTime: {$gt: Date.now()}})
+    if(upcomingShowTime){
+      const error = new Error("Không thể xóa phim do vẫn còn lịch chiếu");
+      error.statusCode = 422;
+      return next(error);
     }
+
+    const existingShowTime = await ShowTime.findOne({movie: movieId});
+    if(existingShowTime){
+      _movie.status = movieStatus.NONACTIVE;
+      await _movie.save()
+    }
+
     for (let actor of _movie.actors) {
       const existingActor = await Actor.findById(actor);
       if (!existingActor) {
@@ -234,7 +214,9 @@ exports.deleteMovie = async (req, res, next) => {
       existingActor.movies.pull(_movie._id.toString());
     }
     await Movie.findByIdAndRemove(movieId)
-    res.status(200).json({ message: "Xoá phim thành công" });
+
+    const movies = await Movies.find();
+    res.status(200).json({ message: "Xoá phim thành công", movies: movies });
   } catch (err) {
     const error = new Error(err.message);
     error.statusCode = 500;
