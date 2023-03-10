@@ -39,3 +39,5 @@ router.post("/upload-image", isAuth, async (req, res, next) => {
     filePath
   });
 });
+
+module.exports = router;
