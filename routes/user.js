@@ -33,8 +33,18 @@ router.get("/users", isAuth, userController.getUsers);
 
 router.delete("/users/:userId", isAuth, userController.deleteUser);
 
-router.delete("/users", isAuth, userController.deleteSelectedUsers);
+// router.delete("/users", isAuth, userController.deleteSelectedUsers);
 
-router.post("/change-password", isAuth, userController.changePassword);
+router.post(
+  "/change-password",
+  isAuth,
+  body("confirmPassword").custom((value, { req }) => {
+    if (value !== req.body.newPassword) {
+      throw new Error("Xác nhận mật khẩu không trùng khớp");
+    }
+    return true;
+  }),
+  userController.changePassword
+);
 
 module.exports = router;

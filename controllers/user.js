@@ -60,11 +60,17 @@ exports.createUser = async (req, res, next) => {
       templateId: process.env.SG_SEND_PASSWORD_TEMPLATE_ID,
       dynamicTemplateData: {
         randomPassword,
-        userName: user.name
+        userName: user.name,
       },
     });
 
-    res.status(201).json({ message: "Thêm nhân viên thành công" });
+    const users = await User.find({
+      role: { $in: [userRoles.STAFF, userRoles.MANAGER] },
+      status: userStatus.ACTIVE,
+    });
+    res
+      .status(201)
+      .json({ message: "Thêm nhân viên thành công", users: users });
   } catch (err) {
     const error = new Error(err.message);
     error.statusCode = 500;
@@ -85,9 +91,8 @@ exports.getUsers = async (req, res, next) => {
       error.statusCode = 401;
       return next(error);
     }
-    const roles = [userRoles.STAFF, userRoles.MANAGER];
     const users = await User.find({
-      role: { $in: roles },
+      role: { $in: [userRoles.STAFF, userRoles.MANAGER] },
       status: userStatus.ACTIVE,
     }).populate("account");
     res.status(200).json({ users });
@@ -131,8 +136,12 @@ exports.deleteUser = async (req, res, next) => {
 
     user.status = userStatus.NONACTIVE;
     await user.save();
+    const users = await User.find({
+      role: { $in: [userRoles.STAFF, userRoles.MANAGER] },
+      status: userStatus.ACTIVE,
+    });
 
-    res.status(200).json({ message: "Xóa nhân viên thành công" });
+    res.status(200).json({ message: "Xóa nhân viên thành công", users: users });
   } catch (err) {
     const error = new Error(err.message);
     error.statusCode = 500;
@@ -140,35 +149,35 @@ exports.deleteUser = async (req, res, next) => {
   }
 };
 
-exports.deleteSelectedUsers = async (req, res, next) => {
-  const userIds = req.body.userIds;
-  try {
-    const currentUserRole = await getRole(req.accountId);
-    if (
-      currentUserRole != userRoles.MANAGER ||
-      currentUserRole != userRoles.OWNER
-    ) {
-      const error = new Error(
-        "Chỉ có quản lý hoặc chủ rạp mới được xóa nhân viên"
-      );
-      error.statusCode = 401;
-      return next(error);
-    }
+// exports.deleteSelectedUsers = async (req, res, next) => {
+//   const userIds = req.body.userIds;
+//   try {
+//     const currentUserRole = await getRole(req.accountId);
+//     if (
+//       currentUserRole != userRoles.MANAGER ||
+//       currentUserRole != userRoles.OWNER
+//     ) {
+//       const error = new Error(
+//         "Chỉ có quản lý hoặc chủ rạp mới được xóa nhân viên"
+//       );
+//       error.statusCode = 401;
+//       return next(error);
+//     }
 
-    const filteredUsers = await User.find({ _id: { $in: userIds } });
-    for (let index = 0; index < filteredUsers.length; index++) {
-      const currentUser = filteredUsers[index];
-      currentUser.status = userStatus.NONACTIVE;
-      await currentUser.save();
-    }
+//     const filteredUsers = await User.find({ _id: { $in: userIds } });
+//     for (let index = 0; index < filteredUsers.length; index++) {
+//       const currentUser = filteredUsers[index];
+//       currentUser.status = userStatus.NONACTIVE;
+//       await currentUser.save();
+//     }
 
-    res.status(200).json({ message: "Xóa nhân viên thành công" });
-  } catch (err) {
-    const error = new Error(err.message);
-    error.statusCode = 500;
-    next(error);
-  }
-};
+//     res.status(200).json({ message: "Xóa nhân viên thành công" });
+//   } catch (err) {
+//     const error = new Error(err.message);
+//     error.statusCode = 500;
+//     next(error);
+//   }
+// };
 
 exports.updateUser = async (req, res, next) => {
   const errors = validationResult(req);
@@ -206,7 +215,7 @@ exports.updateUser = async (req, res, next) => {
       user.role === userRoles.MANAGER &&
       currentUserRole === userRoles.MANAGER
     ) {
-      const error = new Error("Quản lý chỉ được xóa nhân viên cấp dưới");
+      const error = new Error("Quản lý chỉ được chỉnh sửa nhân viên cấp dưới");
       error.statusCode = 401;
       return next(error);
     }
@@ -228,6 +237,7 @@ exports.updateUser = async (req, res, next) => {
       }
     }
 
+    user.role = role;
     user.name = name;
     user.email = email;
     user.phone = phone;
@@ -235,10 +245,11 @@ exports.updateUser = async (req, res, next) => {
     user.gender = gender;
     user.birthday = birthday;
     await user.save();
+    const users = await User.find();
 
     res.status(201).json({
       message: "Cập nhật thông tin thành công",
-      user,
+      users: users,
     });
   } catch (err) {
     const error = new Error(err.message);
@@ -255,28 +266,20 @@ exports.changePassword = async (req, res, next) => {
     error.validationErrors = errors.array();
     return next(error);
   }
-
-  const userId = req.params.userId;
-  const newPassword = req.body.newPassword;
+  const { password, newPassword, confirmPassword } = req.body;
 
   try {
-    const user = await User.findById(userId);
-    if (!user) {
-      const error = new Error("Người dùng không tồn tại.");
-      error.statusCode = 404;
-      return next(error);
-    }
-
-    if (userId !== req.accountId) {
-      const error = new Error("Chỉ có chủ tài khoản mới có thể đổi mật khẩu");
-      error.statusCode = 401;
-      return next(error);
-    }
-
-    const account = await Account.findById(user.account);
+    const account = await Account.findById(req.accountId);
     if (!account) {
       const error = new Error("Tài khoản không tồn tại.");
       error.statusCode = 404;
+      return next(error);
+    }
+
+    const isValidPassword = bcryptjs.compareSync(password, account.password);
+    if (!isValidPassword) {
+      const error = new Error("Mật khẩu không đúng");
+      error.statusCode = 401;
       return next(error);
     }
 
