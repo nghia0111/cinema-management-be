@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const slug = require("mongoose-slug-generator");
 const Schema = mongoose.Schema;
+const {movieStatus} = require("../constants")
 
 mongoose.plugin(slug);
 
@@ -73,6 +74,11 @@ const movieSchemma = new Schema({
   trailer: {
     type: String,
     require: true,
+  },
+  status: {
+    type: String,
+    enum: movieStatus,
+    default: movieStatus.ACTIVE
   }
 });
 
