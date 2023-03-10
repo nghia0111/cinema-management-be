@@ -4,7 +4,7 @@ const router = express.Router();
 
 const genreController = require("../controllers/genre");
 const isAuth = require("../middlewares/is-auth");
-const Genre = require("../models/genre")
+const Genre = require("../models/genre");
 
 const genreValidation = [
   body("name")

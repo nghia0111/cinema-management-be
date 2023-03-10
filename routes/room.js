@@ -10,7 +10,7 @@ const roomValidation = [
   body("name")
     .trim()
     .notEmpty()
-    .withMessage("Vui lòng cung cấp tên loại phòng")
+    .withMessage("Vui lòng cung cấp tên phòng")
     .custom((value, { req }) => {
       return Room.findOne({ name: value }).then((roomDoc) => {
         if (roomDoc) {
