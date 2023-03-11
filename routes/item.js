@@ -15,7 +15,7 @@ router.get("/items", isAuth, itemController.getItems);
 router.post("/items", isAuth, itemValidation, itemController.createItem);
 
 router.put(
-  "/items/:items",
+  "/items/:itemId",
   isAuth,
   itemValidation,
   itemController.updateItem
