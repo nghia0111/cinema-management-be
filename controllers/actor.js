@@ -17,7 +17,7 @@ exports.createActor = async (req, res, next) => {
     return next(error);
   }
 
-  const { name, birthday, nation, story, images } = req.body;
+  const { name, birthday, nation, story, avatar, images } = req.body;
   try {
     const role = await getRole(req.accountId);
     if (
@@ -37,6 +37,7 @@ exports.createActor = async (req, res, next) => {
       birthday,
       nation,
       story,
+      avatar,
       images,
     });
     await actor.save();
@@ -64,7 +65,7 @@ exports.updateActor = async (req, res, next) => {
 
   const actorId = req.params.actorId;
 
-  const { name, birthday, nation, story, images } = req.body;
+  const { name, birthday, nation, story, avatar, images } = req.body;
   try {
     const role = await getRole(req.accountId);
     if (
@@ -90,6 +91,7 @@ exports.updateActor = async (req, res, next) => {
     currentActor.birthday = birthday;
     currentActor.nation = nation;
     currentActor.story = story;
+    currentActor.avatar = avatar;
     currentActor.images = images;
     await currentActor.save();
 

@@ -27,6 +27,10 @@ const actorSchema = new Schema({
     type: String,
     require: true,
   },
+  avatar: {
+    type: String,
+    require: true,
+  },
   images: [
     {
       type: String,
@@ -34,10 +38,10 @@ const actorSchema = new Schema({
     },
   ],
   slug: {
-    type: String, 
+    type: String,
     slug: "name",
-    unique: true
-  }
+    unique: true,
+  },
 });
 
 module.exports = mongoose.model("Actor", actorSchema);
