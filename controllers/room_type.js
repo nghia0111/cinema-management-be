@@ -112,7 +112,7 @@ exports.deleteRoomType = async (req, res, next) => {
       error.statusCode = 406;
       return next(error);
     }
-    const rooms = await Room.find({ roomType: roomTypeId });
+    const rooms = await Room.findOne({ roomType: roomTypeId });
     if (rooms) {
       const error = new Error(
         "Không thể xóa loại phòng do vẫn còn phòng thuộc loại này"
