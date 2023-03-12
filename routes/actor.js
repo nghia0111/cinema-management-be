@@ -7,7 +7,7 @@ const isAuth = require("../middlewares/is-auth");
 
 const actorValidation = [
   body("name", "Vui lòng cung cấp tên diễn viên").trim().notEmpty(),
-  body("birthday", "Ngày sinh không hợp lệ").isDate(),
+  body("birthday", "Ngày sinh không hợp lệ").isISO8601().toDate(),
   body("nation", "Vui lòng cung cấp quốc tịch").trim().notEmpty(),
   body("story", "Vui lòng cung cấp mô tả chi tiết").trim().notEmpty(),
 ];

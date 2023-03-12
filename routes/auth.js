@@ -39,7 +39,7 @@ router.post(
       })
       .normalizeEmail(),
     body("phone", "Số điện thoại không hợp lệ").isMobilePhone("vi-VN"),
-    body("birthday", "Ngày sinh không hợp lệ").isDate(),
+    body("birthday", "Ngày sinh không hợp lệ").isISO8601().toDate(),
   ],
   authController.signup
 );

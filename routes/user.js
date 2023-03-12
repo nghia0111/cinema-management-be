@@ -5,7 +5,6 @@ const router = express.Router();
 const userController = require("../controllers/user");
 const User = require("../models/user");
 const isAuth = require("../middlewares/is-auth");
-const { userRoles } = require("../constants");
 
 const userValidation = [
   body("name", "Vui lòng cung cấp tên người dùng").trim().notEmpty(),
@@ -22,7 +21,7 @@ const userValidation = [
     })
     .normalizeEmail(),
   body("phone", "Số điện thoại không hợp lệ").isMobilePhone("vi-VN"),
-  body("birthday", "Ngày sinh không hợp lệ").isDate(),
+  body("birthday", "Ngày sinh không hợp lệ").isISO8601().toDate(),
 ];
 
 router.post("/users", isAuth, userValidation, userController.createUser);
