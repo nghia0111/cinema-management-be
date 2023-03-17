@@ -2,7 +2,7 @@ const { validationResult } = require("express-validator");
 const Movie = require("../models/movie");
 const Genre = require("../models/genre");
 const Actor = require("../models/actor");
-const ShowTime = require("../models/show_time")
+const ShowTime = require("../models/show_time");
 
 const { getRole } = require("../utils/roles");
 const { userRoles, movieStatus } = require("../constants");
@@ -24,15 +24,19 @@ exports.createMovie = async (req, res, next) => {
     director,
     thumbnail,
     images,
-    time,
+    duration,
     premiereDay,
     endDay,
     language,
-    trailer
+    trailer,
   } = req.body;
   try {
     const role = await getRole(req.accountId);
-    if (role != userRoles.STAFF && role != userRoles.MANAGER && role != userRoles.OWNER) {
+    if (
+      role != userRoles.STAFF &&
+      role != userRoles.MANAGER &&
+      role != userRoles.OWNER
+    ) {
       const error = new Error(
         "Chỉ có quản lý, nhân viên hoặc chủ rạp mới được thêm phim"
       );
@@ -48,11 +52,11 @@ exports.createMovie = async (req, res, next) => {
       director,
       thumbnail,
       images,
-      time,
+      duration,
       premiereDay,
       endDay,
       language,
-      trailer
+      trailer,
     });
     await _movie.save();
 
@@ -67,6 +71,8 @@ exports.createMovie = async (req, res, next) => {
     }
 
     const movies = await Movie.find()
+      .populate("genres")
+      .populate("actors", "name");
 
     res.status(201).json({ message: "Thêm phim thành công", movies: movies });
   } catch (err) {
@@ -95,11 +101,11 @@ exports.updateMovie = async (req, res, next) => {
     director,
     thumbnail,
     images,
-    time,
+    duration,
     premiereDay,
     endDay,
     language,
-    trailer
+    trailer,
   } = req.body;
   try {
     const role = await getRole(req.accountId);
@@ -141,7 +147,7 @@ exports.updateMovie = async (req, res, next) => {
     currentMovie.director = director;
     currentMovie.thumbnail = thumbnail;
     currentMovie.images = images;
-    currentMovie.time = time;
+    currentMovie.duration = duration;
     currentMovie.premiereDay = premiereDay;
     currentMovie.endDay = endDay;
     currentMovie.language = language;
@@ -157,7 +163,9 @@ exports.updateMovie = async (req, res, next) => {
       existingActor.movies.pull(currentMovie._id);
     }
 
-    const movies = await Movie.find();
+    const movies = await Movie.find()
+      .populate("genres")
+      .populate("actors", "name");
 
     res
       .status(200)
@@ -191,17 +199,14 @@ exports.deleteMovie = async (req, res, next) => {
       return next(error);
     }
 
-    const upcomingShowTime = await ShowTime.findOne({movie: movieId, startTime: {$gt: Date.now()}})
-    if(upcomingShowTime){
+    const upcomingShowTime = await ShowTime.findOne({
+      movie: movieId,
+      startTime: { $gt: Date.now() },
+    });
+    if (upcomingShowTime) {
       const error = new Error("Không thể xóa phim do vẫn còn lịch chiếu");
       error.statusCode = 422;
       return next(error);
-    }
-
-    const existingShowTime = await ShowTime.findOne({movie: movieId});
-    if(existingShowTime){
-      _movie.status = movieStatus.NONACTIVE;
-      await _movie.save()
     }
 
     for (let actor of _movie.actors) {
@@ -213,9 +218,16 @@ exports.deleteMovie = async (req, res, next) => {
       }
       existingActor.movies.pull(_movie._id.toString());
     }
-    await Movie.findByIdAndRemove(movieId)
 
-    const movies = await Movies.find();
+    const existingShowTime = await ShowTime.findOne({ movie: movieId });
+    if (existingShowTime) {
+      _movie.status = movieStatus.NONACTIVE;
+      await _movie.save();
+    } else await Movie.findByIdAndRemove(movieId);
+
+    const movies = await Movies.find()
+      .populate("genres")
+      .populate("actors", "name");
     res.status(200).json({ message: "Xoá phim thành công", movies: movies });
   } catch (err) {
     const error = new Error(err.message);
@@ -226,7 +238,7 @@ exports.deleteMovie = async (req, res, next) => {
 
 exports.getMovies = async (req, res, next) => {
   try {
-    const movies = await Movie.find().populate("genres").populate("actors");
+    const movies = await Movie.find().populate("genres").populate("actors", "name");
 
     res.status(200).json({ movies });
   } catch (err) {
@@ -239,7 +251,9 @@ exports.getMovies = async (req, res, next) => {
 exports.getMovieBySlug = async (req, res, next) => {
   const movieSlug = req.params.movieSlug;
   try {
-    const _movie = await Movie.findOne({slug: movieSlug}).populate("genres").populate("actors");
+    const _movie = await Movie.findOne({ slug: movieSlug })
+      .populate("genres")
+      .populate("actors", "name");
     if (!_movie) {
       const error = new Error("Phim không tồn tại");
       error.statusCode = 406;

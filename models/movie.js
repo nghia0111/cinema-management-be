@@ -46,10 +46,6 @@ const movieSchemma = new Schema({
     type: Number,
     require: true,
   },
-  year: {
-    type: Number,
-    require: true,
-  },
   premiereDay: {
     type: Date,
     require: true,
@@ -70,10 +66,6 @@ const movieSchemma = new Schema({
     type: String,
     slug: "name",
     unique: true,
-  },
-  trailer: {
-    type: String,
-    require: true,
   },
   status: {
     type: String,

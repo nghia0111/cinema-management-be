@@ -11,9 +11,11 @@ const movieValidation = [
   body("actors", "Vui lòng cung cấp diễn viên tham gia").notEmpty(),
   body("director", "Vui lòng cung cấp tên đạo diễn").trim().notEmpty(),
   body("thumbnail", "Vui lòng cung cấp ảnh bìa cho phim").trim().notEmpty(),
-  body("time", "Thời lượng phim không hợp lệ").isFloat({ min: 0 }),
-  body("premiereDate", "Ngày khởi chiếu không hợp lệ").isISO8601().toDate(),
+  body("duration", "Thời lượng phim không hợp lệ").isFloat({ min: 0 }),
+  body("premiereDay", "Ngày khởi chiếu không hợp lệ").isISO8601().toDate(),
+  body("endDay", "Ngày kết thúc không hợp lệ").isISO8601().toDate(),
   body("language", "Vui lòng cung cấp ngôn ngữ").trim().notEmpty(),
+  body("trailer", "Vui lòng cung cấp trailer").trim().notEmpty()
 ];
 
 router.get("/movies", isAuth, movieController.getMovies);
