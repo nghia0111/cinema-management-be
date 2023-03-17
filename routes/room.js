@@ -18,6 +18,8 @@ const roomValidation = [
         }
       });
     }),
+  body("roomType", "Vui lòng chọn loại phòng").trim().notEmpty(),
+  body("seats", "Vui lòng thêm ghế cho phòng").isArray({min: 1})
 ];
 
 router.get("/rooms", isAuth, roomController.getRooms);

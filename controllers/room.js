@@ -16,7 +16,7 @@ exports.createRoom = async (req, res, next) => {
     return next(error);
   }
 
-  const { name, roomType, row, column } = req.body;
+  const { name, roomType, seats } = req.body;
   try {
     const role = await getRole(req.accountId);
     if (
@@ -35,22 +35,19 @@ exports.createRoom = async (req, res, next) => {
       name,
       roomType,
     });
+    await room.save();
     const seats = [];
     //create seats for room
-    for (let i = 1; i <= row; i++) {
-      const rowSeats = [];
-      for (let j = 1; j < column; j++) {
-        const seat = new Seat({
-          rowIndex: i,
-          columnIndex: j,
-          room: room._id.toString(),
-        });
-        await seat.save();
-        rowSeats.push(seat._id.toString());
-      }
-      seats.push(rowSeats);
-    }
-    room.seats = seats;
+    room.seats = seats.map((seatRow, seatRowIndex)  => seatRow.map(async (seat, seatIndex) => {
+      const _seat = new Seat({
+        rowIndex: seatRowIndex,
+        columnIndex: seatIndex,
+        room: room._id.toString(),
+        type: seat
+      })
+      await _seat.save();
+      return _seat._id;
+    }))
     await room.save();
     const rooms = await Room.find({ status: roomStatus.ACTIVE });
 
@@ -133,7 +130,7 @@ exports.deleteRoom = async (req, res, next) => {
       return next(error);
     }
 
-    const _showTime = await ShowTime.find({
+    const _showTime = await ShowTime.findOne({
       room: roomId,
       startTime: { $gte: Date.now() },
     });
