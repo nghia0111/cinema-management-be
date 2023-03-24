@@ -66,9 +66,7 @@ exports.updatePost = async (req, res, next) => {
     }
 
     if (req.accountId !== currentPost.author) {
-      const error = new Error(
-        "Chỉ có tác giả mới được chỉnh sửa bài viết"
-      );
+      const error = new Error("Chỉ có tác giả mới được chỉnh sửa bài viết");
       error.statusCode = 401;
       return next(error);
     }
@@ -108,9 +106,7 @@ exports.deletePost = async (req, res, next) => {
     }
     await Post.findByIdAndRemove(postId);
     const posts = await Post.find({ author: req.accountId });
-    res
-      .status(200)
-      .json({ message: "Xoá bài viết thành công", posts: posts });
+    res.status(200).json({ message: "Xoá bài viết thành công", posts: posts });
   } catch (err) {
     const error = new Error(err.message);
     error.statusCode = 500;
@@ -145,7 +141,18 @@ exports.getAllPosts = async (req, res, next) => {
 exports.getPostBySlug = async (req, res, next) => {
   const postSlug = req.params.postSlug;
   try {
-    const post = await Post.findOne({slug: postSlug}).populate("author", "name");
+    const post = await Post.findOne({ slug: postSlug }).populate(
+      "author",
+      "name"
+    );
+    if (!post) {
+      const err = new Error("Không tìm thấy bài viết");
+      err.statusCode = 406;
+      next(err);
+    }
+
+    post.view += 1;
+    await post.save();
 
     res.status(200).json({ post });
   } catch (err) {
