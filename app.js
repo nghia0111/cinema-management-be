@@ -37,7 +37,8 @@ const roomTypeRoutes = require("./routes/room_type");
 const actorRoutes = require("./routes/actor");
 const itemRoutes = require("./routes/item");
 const roomRoutes = require("./routes/room");
-const imageRoutes = require("./routes/image")
+const imageRoutes = require("./routes/image");
+const postRoutes = require("./routes/post");
 
 app.use("/auth", authRoutes);
 app.use(movieRoutes);
@@ -48,6 +49,7 @@ app.use(actorRoutes);
 app.use(itemRoutes);
 app.use(roomRoutes);
 app.use(imageRoutes);
+app.use(postRoutes);
 app.use(helmet());
 app.use(compression());
 

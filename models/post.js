@@ -4,9 +4,13 @@ const Schema = mongoose.Schema;
 
 mongoose.plugin(slug);
 
-const blogSchema = new Schema(
+const postSchema = new Schema(
   {
     title: {
+      type: String,
+      require: true,
+    },
+    thumbnail: {
       type: String,
       require: true,
     },
@@ -24,8 +28,12 @@ const blogSchema = new Schema(
       slug: "title",
       unique: true
     },
+    view: {
+      type: Number,
+      default: 0,
+    }
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Blog", blogSchema);
+module.exports = mongoose.model("Post", postSchema);
