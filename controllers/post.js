@@ -101,7 +101,7 @@ exports.deletePost = async (req, res, next) => {
     }
 
     const role = await getRole(req.accountId);
-    if (req.accountId !== currentPost.author && role !== userRoles.OWNER) {
+    if (req.accountId !== currentPost.author.toString() && role !== userRoles.OWNER) {
       const error = new Error("Chỉ có tác giả hoặc chủ rạp mới được xóa bài viết");
       error.statusCode = 401;
       return next(error);
