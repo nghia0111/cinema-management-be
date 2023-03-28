@@ -38,6 +38,9 @@ const userSchema = new Schema({
     type: Date,
     required: true,
   },
+  avatar: {
+    type: String
+  },
   status: {
     type: String,
     enum: userStatus,

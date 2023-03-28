@@ -4,10 +4,9 @@ const router = express.Router();
 
 const postController = require("../controllers/post");
 const isAuth = require("../middlewares/is-auth");
-const Post = require("../models/post");
 
 const postValidation = [
-  body("name", "Vui lòng cung cấp tiêu đề bài viết").trim().notEmpty(),
+  body("title", "Vui lòng cung cấp tiêu đề bài viết").trim().notEmpty(),
   body("thumbnail", "Vui lòng cung cấp ảnh minh họa cho bài viết")
     .trim()
     .notEmpty(),
@@ -21,7 +20,7 @@ router.get("/my-posts", isAuth, postController.getMyPosts);
 router.get("/posts/:postSlug", isAuth, postController.getPostBySlug);
 
 router.post(
-  "/my-posts/:postId",
+  "/my-posts",
   isAuth,
   postValidation,
   postController.createPost

@@ -32,6 +32,7 @@ exports.createPost = async (req, res, next) => {
       title,
       thumbnail,
       content,
+      author: req.accountId
     });
     await post.save();
 
@@ -99,8 +100,9 @@ exports.deletePost = async (req, res, next) => {
       next(err);
     }
 
-    if (req.accountId !== currentPost.author) {
-      const error = new Error("Chỉ có tác giả mới được xóa bài viết");
+    const role = await getRole(req.accountId);
+    if (req.accountId !== currentPost.author && role !== userRoles.OWNER) {
+      const error = new Error("Chỉ có tác giả hoặc chủ rạp mới được xóa bài viết");
       error.statusCode = 401;
       return next(error);
     }
@@ -128,7 +130,7 @@ exports.getMyPosts = async (req, res, next) => {
 
 exports.getAllPosts = async (req, res, next) => {
   try {
-    const posts = await Post.find().populate("author", "name");
+    const posts = await Post.find().populate("author", "name avatar");
 
     res.status(200).json({ posts });
   } catch (err) {
@@ -143,7 +145,7 @@ exports.getPostBySlug = async (req, res, next) => {
   try {
     const post = await Post.findOne({ slug: postSlug }).populate(
       "author",
-      "name"
+      "name avatar"
     );
     if (!post) {
       const err = new Error("Không tìm thấy bài viết");
