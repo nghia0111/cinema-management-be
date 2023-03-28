@@ -21,7 +21,7 @@ exports.createUser = async (req, res, next) => {
   try {
     const currentUserRole = await getRole(req.accountId);
     if (
-      currentUserRole != userRoles.MANAGER ||
+      currentUserRole != userRoles.MANAGER &&
       currentUserRole != userRoles.OWNER
     ) {
       const error = new Error(
@@ -82,7 +82,7 @@ exports.getUsers = async (req, res, next) => {
   try {
     const currentUserRole = await getRole(req.accountId);
     if (
-      currentUserRole != userRoles.MANAGER ||
+      currentUserRole != userRoles.MANAGER &&
       currentUserRole != userRoles.OWNER
     ) {
       const error = new Error(
@@ -108,7 +108,7 @@ exports.deleteUser = async (req, res, next) => {
   try {
     const currentUserRole = await getRole(req.accountId);
     if (
-      currentUserRole != userRoles.MANAGER ||
+      currentUserRole != userRoles.MANAGER &&
       currentUserRole != userRoles.OWNER
     ) {
       const error = new Error(
@@ -126,7 +126,7 @@ exports.deleteUser = async (req, res, next) => {
     }
 
     if (
-      currentUserRole === userRoles.MANAGER ||
+      currentUserRole === userRoles.MANAGER &&
       user.role === userRoles.MANAGER
     ) {
       const error = new Error("Quản lý chỉ được xóa nhân viên cấp dưới");
@@ -266,7 +266,7 @@ exports.changePassword = async (req, res, next) => {
     error.validationErrors = errors.array();
     return next(error);
   }
-  const { password, newPassword, confirmPassword } = req.body;
+  const { password, newPassword } = req.body;
 
   try {
     const account = await Account.findById(req.accountId);
