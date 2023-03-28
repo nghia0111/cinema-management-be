@@ -66,7 +66,7 @@ exports.updatePost = async (req, res, next) => {
       next(err);
     }
 
-    if (req.accountId !== currentPost.author) {
+    if (req.accountId !== currentPost.author.toString()) {
       const error = new Error("Chỉ có tác giả mới được chỉnh sửa bài viết");
       error.statusCode = 401;
       return next(error);
