@@ -49,7 +49,7 @@ exports.createRoom = async (req, res, next) => {
       return _seat._id;
     }))
     await room.save();
-    const rooms = await Room.find({ status: roomStatus.ACTIVE });
+    const rooms = await Room.find({ status: roomStatus.ACTIVE }).populate("roomType");
 
     res.status(201).json({ message: "Thêm phòng thành công", rooms: rooms });
   } catch (err) {
