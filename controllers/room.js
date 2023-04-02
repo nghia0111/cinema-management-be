@@ -3,6 +3,7 @@ const RoomType = require("../models/room_type");
 const Room = require("../models/room");
 const Seat = require("../models/seat");
 const ShowTime = require("../models/show_time");
+const mongoose = require("mongoose");
 
 const { getRole } = require("../utils/roles");
 const { userRoles, roomStatus } = require("../constants");
@@ -36,20 +37,27 @@ exports.createRoom = async (req, res, next) => {
       roomType,
     });
     await room.save();
-    const seats = [];
     //create seats for room
-    room.seats = seats.map((seatRow, seatRowIndex)  => seatRow.map(async (seat, seatIndex) => {
-      const _seat = new Seat({
-        rowIndex: seatRowIndex,
-        columnIndex: seatIndex,
-        room: room._id.toString(),
-        type: seat
-      })
-      await _seat.save();
-      return _seat._id;
-    }))
+    room.seats = await Promise.all(
+      seats.map(async (seatRow, seatRowIndex) =>
+        Promise.all(
+          seatRow.map(async (seat, seatIndex) => {
+            const _seat = new Seat({
+              rowIndex: seatRowIndex,
+              columnIndex: seatIndex,
+              room: room._id.toString(),
+              type: seat,
+            });
+            await _seat.save();
+            return _seat._id;
+          })
+        )
+      )
+    );
     await room.save();
-    const rooms = await Room.find({ status: roomStatus.ACTIVE }).populate("roomType");
+    const rooms = await Room.find({ status: roomStatus.ACTIVE }).populate(
+      "roomType"
+    );
 
     res.status(201).json({ message: "Thêm phòng thành công", rooms: rooms });
   } catch (err) {
@@ -95,7 +103,9 @@ exports.updateRoom = async (req, res, next) => {
     currentRoom.name = name;
     currentRoom.roomType = roomType;
     await currentRoom.save();
-    const rooms = await Room.find({ status: roomStatus.ACTIVE });
+    const rooms = await Room.find({ status: roomStatus.ACTIVE }).populate(
+      "roomType"
+    );
 
     res.status(200).json({
       message: "Chỉnh sửa phòng thành công",
@@ -141,8 +151,12 @@ exports.deleteRoom = async (req, res, next) => {
       error.statusCode = 422;
       return next(error);
     }
-    await Room.findByIdAndUpdate({_id: roomId}, {status: roomStatus.NONACTIVE});
-    const rooms = await Room.find({status: roomStatus.ACTIVE});
+
+    await Room.findByIdAndUpdate(
+      { _id: roomId },
+      { status: roomStatus.NONACTIVE }
+    ).populate("roomType");
+    const rooms = await Room.find({ status: roomStatus.ACTIVE });
     res.status(200).json({ message: "Xoá phòng thành công", rooms: rooms });
   } catch (err) {
     const error = new Error(err.message);
@@ -153,7 +167,9 @@ exports.deleteRoom = async (req, res, next) => {
 
 exports.getRooms = async (req, res, next) => {
   try {
-    const rooms = await Room.find({status: roomStatus.ACTIVE});
+    const rooms = await Room.find({ status: roomStatus.ACTIVE }).populate(
+      "roomType"
+    );
 
     res.status(200).json({ rooms });
   } catch (err) {
@@ -166,7 +182,10 @@ exports.getRooms = async (req, res, next) => {
 exports.getRoomsByTypeId = async (req, res, next) => {
   const { roomType } = req.body;
   try {
-    const rooms = await Room.find({roomType: roomType, status: roomStatus.ACTIVE});
+    const rooms = await Room.find({
+      roomType: roomType,
+      status: roomStatus.ACTIVE,
+    }).populate("roomType");
 
     res.status(200).json({ rooms });
   } catch (err) {
@@ -179,7 +198,9 @@ exports.getRoomsByTypeId = async (req, res, next) => {
 exports.getRoomById = async (req, res, next) => {
   const roomId = req.params.roomId;
   try {
-    const room = await Room.findById(roomId).populate("roomType", "name").populate("seats", "name type");
+    const room = await Room.findById(roomId)
+      .populate("roomType")
+      .populate("seats", "name type");
 
     res.status(200).json({ room });
   } catch (err) {

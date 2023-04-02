@@ -31,6 +31,10 @@ router.post(
   roomController.createRoom
 );
 
+router.get("/rooms/:roomId", isAuth, roomController.getRoomById);
+
+router.get("/roomsByType", isAuth, roomController.getRoomsByTypeId);
+
 router.put(
   "/rooms/:roomId",
   isAuth,

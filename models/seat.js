@@ -16,8 +16,8 @@ const seatSchema = new Schema({
     require: true,
     default: function () {
       return (
-        String.fromCharCode("A".charCodeAt() + rowIndex - 1) +
-        columnIndex.toString()
+        String.fromCharCode(65 + this.rowIndex) +
+        (this.columnIndex + 1).toString()
       );
     },
   },
