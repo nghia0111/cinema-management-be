@@ -56,7 +56,7 @@ exports.signup = async (req, res, next) => {
     return next(error);
   }
 
-  const { username, password, name, address, email, phone, gender, birthday } = req.body;
+  const { username, password, name, email, phone, gender, birthday } = req.body;
 
   try {
     const existingAccount = await Account.findOne({ username });
@@ -75,7 +75,6 @@ exports.signup = async (req, res, next) => {
       role: userRoles.CUSTOMER,
       account: account._id.toString(),
       name,
-      address,
       email,
       phone,
       gender,

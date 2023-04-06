@@ -26,7 +26,6 @@ router.post(
       return true;
     }),
     body("name", "Tên không được để trống").notEmpty().trim(),
-    body("address", "Địa chỉ không được để trống").notEmpty().trim(),
     body("email")
       .isEmail()
       .withMessage("Email không hợp lệ")
