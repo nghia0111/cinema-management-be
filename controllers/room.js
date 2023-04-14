@@ -197,7 +197,7 @@ exports.getRoomsByTypeId = async (req, res, next) => {
 exports.getRoomById = async (req, res, next) => {
   const roomId = req.params.roomId;
   try {
-    const room = await Room.findById(roomId);
+    const room = await Room.findById(roomId).populate("roomType");
     if(!room){
       const err = new Error("Không tìm thấy phòng");
       err.statusCode = 406;
