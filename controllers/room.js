@@ -49,7 +49,7 @@ exports.createRoom = async (req, res, next) => {
               type: seat,
             });
             await _seat.save();
-            return _seat._id;
+            return ({ seatId: _seat._id });
           })
         )
       )
@@ -186,7 +186,6 @@ exports.getRoomsByTypeId = async (req, res, next) => {
       roomType: roomType,
       status: roomStatus.ACTIVE,
     }).populate("roomType");
-
     res.status(200).json({ rooms });
   } catch (err) {
     const error = new Error(err.message);
@@ -198,9 +197,15 @@ exports.getRoomsByTypeId = async (req, res, next) => {
 exports.getRoomById = async (req, res, next) => {
   const roomId = req.params.roomId;
   try {
-    const room = await Room.findById(roomId)
-      .populate("roomType")
-      .populate("seats", "name type");
+    const room = await Room.findById(roomId);
+    if(!room){
+      const err = new Error("Không tìm thấy phòng");
+      err.statusCode = 406;
+      return next(err);
+    }
+    for (let i = 0; i < room.seats.length; i++) {
+      await room.populate({ path: `seats.${i}.seatId`, select: "type" });
+    }
 
     res.status(200).json({ room });
   } catch (err) {
