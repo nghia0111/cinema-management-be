@@ -38,7 +38,6 @@ router.get("/roomsByType", isAuth, roomController.getRoomsByTypeId);
 router.put(
   "/rooms/:roomId",
   isAuth,
-  roomValidation,
   roomController.updateRoom
 );
 

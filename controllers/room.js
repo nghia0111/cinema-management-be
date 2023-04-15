@@ -78,7 +78,7 @@ exports.updateRoom = async (req, res, next) => {
 
   const roomId = req.params.roomId;
 
-  const { name, roomType } = req.body;
+  const { name, roomType, seats, isSeatModified } = req.body;
   try {
     const role = await getRole(req.accountId);
     if (
@@ -99,9 +99,39 @@ exports.updateRoom = async (req, res, next) => {
       err.statusCode = 406;
       next(err);
     }
+    for (let i = 0; i < currentRoom.seats.length; i++) {
+      await currentRoom.populate({ path: `seats.${i}.seatId`, select: "type" });
+    }
 
-    currentRoom.name = name;
+    const existingRoom = await Room.findOne({name: name, _id: {$ne: currentRoom._id.toString()}});
+    if(existingRoom){
+      const err = new Error("Tên phòng đã tồn tại");
+      err.statusCode = 422;
+      return next(err);
+    }
     currentRoom.roomType = roomType;
+    if(isSeatModified){
+      for(let i=0; i<seats.length;i++){
+        if(!currentRoom.seats[i]) currentRoom.seats.push([]);
+        for(let j=0; j<seats[i].length;j++){
+          if(!seats[i][j].seatId){
+            const seat = new Seat({
+              rowIndex: i,
+              columnIndex: j,
+              room: currentRoom._id.toString(),
+              type: seats[i][j],
+            })
+            await seat.save();
+            currentRoom.seats[i].push({seatId: seat._id.toString()});
+          } else if(seats[i][j].seatId.type !== currentRoom.seats[i][j].seatId.type){
+            await Seat.findByIdAndUpdate(
+              seats[i][j].seatId._id,
+              { type: seats[i][j].seatId.type }
+            );
+          }
+        }
+      }
+    }
     await currentRoom.save();
     const rooms = await Room.find({ status: roomStatus.ACTIVE }).populate(
       "roomType"
