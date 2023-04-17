@@ -124,7 +124,7 @@ exports.updateRoom = async (req, res, next) => {
     if (isSeatModified) {
       // remove rows of old seats
       for (let i = currentRoom.seats.length - 1; i >= seats.length; i--) {
-        for (let j = 0; j < seats[i].length; j++) {
+        for (let j = 0; j < currentRoom.seats[0].length; j++) {
           await Seat.findByIdAndRemove(currentRoom.seats[i][j].seatId._id);
         }
         currentRoom.seats.pop();
