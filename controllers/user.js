@@ -236,6 +236,10 @@ exports.updateUser = async (req, res, next) => {
         return next(error);
       }
     }
+    await Account.findOneAndUpdate(
+      { username: user.email },
+      { username: email }
+    );
 
     user.role = role;
     user.name = name;
@@ -244,6 +248,7 @@ exports.updateUser = async (req, res, next) => {
     user.address = address;
     user.gender = gender;
     user.birthday = birthday;
+
     await user.save();
     const users = await User.find();
 
