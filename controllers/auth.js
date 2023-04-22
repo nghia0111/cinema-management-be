@@ -81,7 +81,7 @@ exports.signup = async (req, res, next) => {
       birthday,
     });
     await user.save();
-    res.status(200).json({ message: "Đăng ký thành công" });
+    res.status(201).json({ message: "Đăng ký thành công" });
   } catch (err) {
     const error = new Error(err.message);
     error.statusCode = 500;
@@ -171,7 +171,7 @@ exports.changePassword = async (req, res, next) => {
     account.resetTokenExpiration = undefined;
     await account.save();
 
-    res.status(201).json({ message: "Thay đổi mật khẩu thành công" });
+    res.status(200).json({ message: "Thay đổi mật khẩu thành công" });
   } catch (err) {
     const error = new Error("Có lỗi xảy ra, vui lòng thử lại sau");
     error.statusCode = 500;
