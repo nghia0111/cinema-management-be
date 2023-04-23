@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const slug = require("mongoose-slug-generator");
+const { postStatus } = require("../constants");
 const Schema = mongoose.Schema;
 
 mongoose.plugin(slug);
@@ -31,6 +32,11 @@ const postSchema = new Schema(
     view: {
       type: Number,
       default: 0,
+    },
+    status: {
+      type: String,
+      enum: postStatus,
+      require: true
     }
   },
   { timestamps: true }

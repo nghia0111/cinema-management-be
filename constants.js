@@ -38,11 +38,17 @@ const movieStatus = {
   NONACTIVE: "Tạm nghỉ",
 };
 
+const postStatus = {
+  DRAFT: "Bản nháp",
+  PUBLIC: "Công khai"
+}
+
 module.exports = {
   userRoles,
   userStatus,
   genders,
   seatTypes,
   roomStatus,
-  movieStatus
+  movieStatus,
+  postStatus,
 };
