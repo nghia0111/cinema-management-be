@@ -18,9 +18,9 @@ const movieValidation = [
   body("trailer", "Vui lòng cung cấp trailer").trim().notEmpty()
 ];
 
-router.get("/movies", isAuth, movieController.getMovies);
+router.get("/movies", movieController.getMovies);
 
-router.get("/movies/:movieSlug", isAuth, movieController.getMovieBySlug);
+router.get("/movies/:movieSlug", movieController.getMovieBySlug);
 
 router.post("/movies", isAuth, movieValidation, movieController.createMovie);
 

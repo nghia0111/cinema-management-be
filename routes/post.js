@@ -13,11 +13,11 @@ const postValidation = [
   body("content", "Vui lòng cung cấp nội dung bài viết").trim().notEmpty(),
 ];
 
-router.get("/posts", isAuth, postController.getAllPosts);
+router.get("/posts", postController.getAllPosts);
 
 router.get("/my-posts", isAuth, postController.getMyPosts);
 
-router.get("/posts/:postSlug", isAuth, postController.getPostBySlug);
+router.get("/posts/:postSlug", postController.getPostBySlug);
 
 router.post(
   "/my-posts",

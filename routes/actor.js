@@ -12,9 +12,9 @@ const actorValidation = [
   body("story", "Vui lòng cung cấp mô tả chi tiết").trim().notEmpty(),
 ];
 
-router.get("/actors", isAuth, actorController.getActors);
+router.get("/actors", actorController.getActors);
 
-router.get("/actors/:actorSlug", isAuth, actorController.getActorBySlug);
+router.get("/actors/:actorSlug", actorController.getActorBySlug);
 
 router.post("/actors", isAuth, actorValidation, actorController.createActor);
 
