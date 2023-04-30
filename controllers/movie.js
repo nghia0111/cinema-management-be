@@ -238,7 +238,15 @@ exports.deleteMovie = async (req, res, next) => {
 
 exports.getMovies = async (req, res, next) => {
   try {
-    const movies = await Movie.find().populate("genres").populate("actors", "name avatar");
+    let movies;
+    if (Object.keys(req.query).length > 0) {
+      movies = await Movie.find({ status: movieStatus.ACTIVE })
+        .populate("genres")
+        .populate("actors", "name avatar");
+    } else
+      movies = await Movie.find()
+        .populate("genres")
+        .populate("actors", "name avatar");
 
     res.status(200).json({ movies });
   } catch (err) {
