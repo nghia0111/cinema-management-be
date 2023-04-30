@@ -72,7 +72,7 @@ exports.createMovie = async (req, res, next) => {
 
     const movies = await Movie.find()
       .populate("genres")
-      .populate("actors", "name");
+      .populate("actors", "name avatar");
 
     res.status(201).json({ message: "Thêm phim thành công", movies: movies });
   } catch (err) {
@@ -165,7 +165,7 @@ exports.updateMovie = async (req, res, next) => {
 
     const movies = await Movie.find()
       .populate("genres")
-      .populate("actors", "name");
+      .populate("actors", "name avatar");
 
     res
       .status(200)
@@ -227,7 +227,7 @@ exports.deleteMovie = async (req, res, next) => {
 
     const movies = await Movies.find()
       .populate("genres")
-      .populate("actors", "name");
+      .populate("actors", "name avatar");
     res.status(200).json({ message: "Xoá phim thành công", movies: movies });
   } catch (err) {
     const error = new Error(err.message);
@@ -238,7 +238,7 @@ exports.deleteMovie = async (req, res, next) => {
 
 exports.getMovies = async (req, res, next) => {
   try {
-    const movies = await Movie.find().populate("genres").populate("actors", "name");
+    const movies = await Movie.find().populate("genres").populate("actors", "name avatar");
 
     res.status(200).json({ movies });
   } catch (err) {
@@ -253,7 +253,7 @@ exports.getMovieBySlug = async (req, res, next) => {
   try {
     const _movie = await Movie.findOne({ slug: movieSlug })
       .populate("genres")
-      .populate("actors", "name");
+      .populate("actors", "name avatar");
     if (!_movie) {
       const error = new Error("Phim không tồn tại");
       error.statusCode = 406;

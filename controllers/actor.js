@@ -180,25 +180,3 @@ exports.getActorBySlug = async (req, res, next) => {
     next(error);
   }
 };
-
-// exports.createAccount = async () => {
-//   const account0 = new Account({
-//     username: "phuquang147",
-//     password: bcryptjs.hashSync("phuquang", 12),
-//   });
-//   await account0.save();
-
-//   const admin = new User({
-//     role: userRoles.OWNER,
-//     account: account0._id.toString(),
-//     name: "Phú Quang",
-//     address: "Linh Trung, Thủ Đức",
-//     email: "phuquang14722@gmail.com",
-//     phone: "0312312312",
-//     gender: genders.MALE,
-//     birthday: new Date(),
-//   });
-//   await admin.save();
-//   console.log(account0);
-//   console.log(admin);
-// };
