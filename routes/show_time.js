@@ -7,18 +7,33 @@ const isAuth = require("../middlewares/is-auth");
 const showTime = require("../models/show_time");
 
 const showTimeValidation = [
-  body("startTime", "Thời gian bắt đầu không hợp lệ").isDate(),
+  body("startTime", "Thời gian bắt đầu không hợp lệ").isISO8601().toDate(),
   body("singlePrice", "Giá ghế đơn không hợp lệ").isInt({ min: 0 }),
   body("doublePrice", "Giá ghế đôi không hợp lệ").isInt({ min: 0 }),
 ];
 
-router.post("/show-times", isAuth, showTimeValidation, showTimeController.createShowTime);
+router.post(
+  "/show-times",
+  isAuth,
+  showTimeValidation,
+  showTimeController.createShowTime
+);
 
 router.put(
-  "/showTimes/:showTimeId",
+  "/show-times/:showTimeId",
   isAuth,
   showTimeValidation,
   showTimeController.updateShowTime
+);
+
+router.get(
+  "/show-times/:showTimeId",
+  showTimeController.getShowTimeById
+);
+
+router.get(
+  "/show-times",
+  showTimeController.getUpComingShowTime
 );
 
 module.exports = router;

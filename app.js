@@ -1,11 +1,7 @@
-const path = require("path");
-const fs = require("fs");
-
 const express = require("express");
 const bodyParser = require("body-parser");
 
 const mongoose = require("mongoose");
-// const actorController = require("./controllers/actor")
 
 const helmet = require("helmet");
 const compression = require("compression");
@@ -39,6 +35,7 @@ const itemRoutes = require("./routes/item");
 const roomRoutes = require("./routes/room");
 const imageRoutes = require("./routes/image");
 const postRoutes = require("./routes/post");
+const showTimeRoutes = require("./routes/show_time");
 
 app.use("/auth", authRoutes);
 app.use(movieRoutes);
@@ -50,10 +47,9 @@ app.use(itemRoutes);
 app.use(roomRoutes);
 app.use(imageRoutes);
 app.use(postRoutes);
+app.use(showTimeRoutes);
 app.use(helmet());
 app.use(compression());
-
-// actorController.createAccount();
 
 app.use((err, req, res, next) => {
   const { statusCode, message, data, validationErrors } = err;
