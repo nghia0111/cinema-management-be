@@ -392,11 +392,30 @@ exports.deleteShowTime = async (req, res, next) => {
 
 exports.getUpComingShowTime = async (req, res, next) => {
   try {
-    const showTime = await ShowTime.find({startTime: {$lt: Date.now()}})
+    const showTimes = await ShowTime.find({startTime: {$lt: Date.now()}})
       .populate("room", "name")
       .populate("movie");
 
-    res.status(200).json({ showTime });
+    res.status(200).json({ showTimes });
+  } catch (err) {
+    const error = new Error(err.message);
+    error.statusCode = 500;
+    next(error);
+  }
+};
+
+exports.getShowTimesByDate = async (req, res, next) => {
+  try {
+    const { date } = req.body;
+    const nextDate = new Date(date);
+    nextDate.setDate(nextDate.getDate() + 1);
+    const showTimes = await ShowTime.find({
+      startTime: { $gte: date, $lt: nextDate },
+    }).select("-tickets")
+      .populate("room", "name")
+      .populate("movie");
+
+    res.status(200).json({ showTimes });
   } catch (err) {
     const error = new Error(err.message);
     error.statusCode = 500;
