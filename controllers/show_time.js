@@ -392,7 +392,7 @@ exports.deleteShowTime = async (req, res, next) => {
 
 exports.getUpComingShowTime = async (req, res, next) => {
   try {
-    const showTimes = await ShowTime.find({startTime: {$lt: Date.now()}})
+    const showTimes = await ShowTime.find({startTime: {$gt: Date.now()}})
       .populate("room", "name")
       .populate("movie");
 

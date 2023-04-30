@@ -70,7 +70,7 @@ exports.createMovie = async (req, res, next) => {
       existingActor.movies.push(_movie._id.toString());
     }
 
-    const movies = await Movie.find()
+    const movies = await Movie.find({status: movieStatus.ACTIVE})
       .populate("genres")
       .populate("actors", "name avatar");
 
@@ -163,7 +163,7 @@ exports.updateMovie = async (req, res, next) => {
       existingActor.movies.pull(currentMovie._id);
     }
 
-    const movies = await Movie.find()
+    const movies = await Movie.find({status: movieStatus.ACTIVE})
       .populate("genres")
       .populate("actors", "name avatar");
 
@@ -225,7 +225,7 @@ exports.deleteMovie = async (req, res, next) => {
       await _movie.save();
     } else await Movie.findByIdAndRemove(movieId);
 
-    const movies = await Movies.find()
+    const movies = await Movie.find({status: movieStatus.ACTIVE})
       .populate("genres")
       .populate("actors", "name avatar");
     res.status(200).json({ message: "Xoá phim thành công", movies: movies });
@@ -240,11 +240,11 @@ exports.getMovies = async (req, res, next) => {
   try {
     let movies;
     if (Object.keys(req.query).length > 0) {
-      movies = await Movie.find({ status: movieStatus.ACTIVE })
+      movies = await Movie.find({ endDay: {$gt: Date.now()}, status: movieStatus.ACTIVE })
         .populate("genres")
         .populate("actors", "name avatar");
     } else
-      movies = await Movie.find()
+      movies = await Movie.find({ status: movieStatus.ACTIVE })
         .populate("genres")
         .populate("actors", "name avatar");
 
@@ -259,7 +259,7 @@ exports.getMovies = async (req, res, next) => {
 exports.getMovieBySlug = async (req, res, next) => {
   const movieSlug = req.params.movieSlug;
   try {
-    const _movie = await Movie.findOne({ slug: movieSlug })
+    const _movie = await Movie.findOne({ slug: movieSlug, status: movieStatus.ACTIVE })
       .populate("genres")
       .populate("actors", "name avatar");
     if (!_movie) {
