@@ -380,7 +380,7 @@ exports.deleteShowTime = async (req, res, next) => {
       }
     }
 
-    await Ticket.deleteMany({showTime: showTimeId});
+    await Ticket.deleteMany({ showTime: showTimeId });
     await ShowTime.findByIdAndRemove(showTimeId);
 
     const nextDate = new Date();
@@ -398,31 +398,30 @@ exports.deleteShowTime = async (req, res, next) => {
   }
 };
 
-exports.getUpComingShowTime = async (req, res, next) => {
+exports.getShowTimes = async (req, res, next) => {
   try {
-    const showTimes = await ShowTime.find({ startTime: { $gt: Date.now() } })
-      .populate("room", "name")
-      .populate("movie", "name duration");
-
-    res.status(200).json({ showTimes });
-  } catch (err) {
-    const error = new Error(err.message);
-    error.statusCode = 500;
-    next(error);
-  }
-};
-
-exports.getShowTimesByDate = async (req, res, next) => {
-  try {
-    const { date } = req.body;
-    const nextDate = new Date(date);
-    nextDate.setDate(nextDate.getDate() + 1);
-    const showTimes = await ShowTime.find({
-      startTime: { $gte: date, $lt: nextDate },
-    })
-      .select("-tickets")
-      .populate("room", "name")
-      .populate("movie", "name duration");
+    let showTimes;
+    if (Object.keys(req.query).length > 0) {
+      const date = req.query.date;
+      if (!date) {
+        const error = new Error("Có lỗi xảy ra, vui lòng thử lại sau");
+        error.statusCode = 404;
+        return next(error);
+      }
+      const nextDate = new Date(date);
+      nextDate.setDate(nextDate.getDate() + 1);
+      showTimes = await ShowTime.find({
+        startTime: { $gte: date, $lt: nextDate },
+      })
+        .select("-tickets")
+        .populate("room", "name")
+        .populate("movie", "name duration");
+    } else {
+      showTimes = await ShowTime.find({ startTime: { $gt: Date.now() } })
+        .select("-tickets")
+        .populate("room", "name")
+        .populate("movie", "name duration");
+    }
 
     res.status(200).json({ showTimes });
   } catch (err) {

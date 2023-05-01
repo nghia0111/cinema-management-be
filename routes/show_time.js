@@ -33,10 +33,7 @@ router.get(
 
 router.get(
   "/show-times",
-  showTimeController.getUpComingShowTime
+  showTimeController.getShowTimes
 );
-
-router.post("/show-times-by-date", showTimeController.getShowTimesByDate);
-
 
 module.exports = router;
