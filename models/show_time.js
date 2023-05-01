@@ -27,6 +27,14 @@ const showTimeSchema = new Schema({
       return start.setMinutes(start.getMinutes() + this.duration);
     },
   },
+  singlePrice: {
+    type: Number,
+    require: true,
+  },
+  doublePrice: {
+    type: Number,
+    require: true,
+  },
   tickets: [
     [
       {
@@ -36,8 +44,8 @@ const showTimeSchema = new Schema({
         },
         isBooked: {
           type: Boolean,
-          default: false
-        }
+          default: false,
+        },
       },
     ],
   ],

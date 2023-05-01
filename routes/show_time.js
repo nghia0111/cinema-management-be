@@ -36,4 +36,6 @@ router.get(
   showTimeController.getShowTimes
 );
 
+router.delete("/show-times/:showTimeId", isAuth, showTimeController.deleteShowTime);
+
 module.exports = router;
