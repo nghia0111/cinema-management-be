@@ -71,6 +71,8 @@ exports.createShowTime = async (req, res, next) => {
       room: roomId,
       movie: movieId,
       duration: movie.duration,
+      singlePrice,
+      doublePrice,
     });
     await show_time.save();
 
@@ -275,6 +277,8 @@ exports.updateShowTime = async (req, res, next) => {
     currentShowTime.room = roomId;
     currentShowTime.movie = movieId;
     currentShowTime.duration = movie.duration;
+    currentShowTime.singlePrice = singlePrice;
+    currentShowTime.doublePrice = doublePrice;
     await currentShowTime.save();
 
     const nextDate = new Date();
@@ -412,16 +416,14 @@ exports.getShowTimes = async (req, res, next) => {
       nextDate.setDate(nextDate.getDate() + 1);
       showTimes = await ShowTime.find({
         startTime: { $gte: date, $lt: nextDate },
-      })
-        .select("-tickets")
-        .populate("room", "name")
-        .populate("movie", "name duration");
+      });
     } else {
-      showTimes = await ShowTime.find({ startTime: { $gt: Date.now() } })
-        .select("-tickets")
-        .populate("room", "name")
-        .populate("movie", "name duration");
+      showTimes = await ShowTime.find({ startTime: { $gt: Date.now() } });
     }
+    await showTimes
+      .select("-tickets")
+      .populate("room", "name")
+      .populate("movie", "name duration");
 
     res.status(200).json({ showTimes });
   } catch (err) {
