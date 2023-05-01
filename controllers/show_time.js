@@ -107,7 +107,11 @@ exports.createShowTime = async (req, res, next) => {
 
     const nextDate = new Date();
     nextDate.setDate(nextDate.getDate() + 1);
-    const showTimes = await ShowTime.find({startTime: {$gt: Date.now(), $lte: nextDate}});
+    const showTimes = await ShowTime.find({
+      startTime: { $gt: Date.now(), $lte: nextDate },
+    })
+      .populate("room", "name")
+      .populate("movie", "name duration");
 
     res.status(201).json({ message: "Thêm lịch chiếu thành công", showTimes });
   } catch (err) {
@@ -277,7 +281,9 @@ exports.updateShowTime = async (req, res, next) => {
     nextDate.setDate(nextDate.getDate() + 1);
     const showTimes = await ShowTime.find({
       startTime: { $gt: Date.now(), $lte: nextDate },
-    });
+    })
+      .populate("room", "name")
+      .populate("movie", "name duration");
 
     res.status(200).json({
       message: "Chỉnh sửa lịch chiếu thành công",
@@ -381,7 +387,9 @@ exports.deleteShowTime = async (req, res, next) => {
     nextDate.setDate(nextDate.getDate() + 1);
     const showTimes = await ShowTime.find({
       startTime: { $gt: Date.now(), $lte: nextDate },
-    });
+    })
+      .populate("room", "name")
+      .populate("movie", "name duration");
     res.status(200).json({ message: "Xoá lịch chiếu thành công", showTimes });
   } catch (err) {
     const error = new Error(err.message);
@@ -392,9 +400,9 @@ exports.deleteShowTime = async (req, res, next) => {
 
 exports.getUpComingShowTime = async (req, res, next) => {
   try {
-    const showTimes = await ShowTime.find({startTime: {$gt: Date.now()}})
+    const showTimes = await ShowTime.find({ startTime: { $gt: Date.now() } })
       .populate("room", "name")
-      .populate("movie");
+      .populate("movie", "name duration");
 
     res.status(200).json({ showTimes });
   } catch (err) {
@@ -411,9 +419,10 @@ exports.getShowTimesByDate = async (req, res, next) => {
     nextDate.setDate(nextDate.getDate() + 1);
     const showTimes = await ShowTime.find({
       startTime: { $gte: date, $lt: nextDate },
-    }).select("-tickets")
+    })
+      .select("-tickets")
       .populate("room", "name")
-      .populate("movie");
+      .populate("movie", "name duration");
 
     res.status(200).json({ showTimes });
   } catch (err) {
