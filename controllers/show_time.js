@@ -36,20 +36,20 @@ exports.createShowTime = async (req, res, next) => {
     if (!room) {
       const err = new Error("Không tìm thấy phòng");
       err.statusCode = 406;
-      next(err);
+      return next(err);
     }
 
     const movie = await Movie.findById(movieId);
     if (!movie) {
       const err = new Error("Không tìm thấy phim");
       err.statusCode = 406;
-      next(err);
+      return next(err);
     }
 
     if (startTime < Date.now()) {
       const err = new Error("Lịch chiếu không hợp lệ");
       err.statusCode = 422;
-      next(err);
+      return next(err);
     }
 
     let endTime = new Date(startTime);
@@ -63,7 +63,7 @@ exports.createShowTime = async (req, res, next) => {
     if (conflictShowTime) {
       const err = new Error("Không thể thêm lịch chiếu do trùng lịch");
       err.statusCode = 422;
-      next(err);
+      return next(err);
     }
 
     const show_time = new ShowTime({
@@ -153,20 +153,20 @@ exports.updateShowTime = async (req, res, next) => {
     if (!room) {
       const err = new Error("Không tìm thấy phòng");
       err.statusCode = 406;
-      next(err);
+      return next(err);
     }
 
     const movie = await Movie.findById(movieId);
     if (!movie) {
       const err = new Error("Không tìm thấy phim");
       err.statusCode = 406;
-      next(err);
+      return next(err);
     }
 
     if (startTime < Date.now()) {
       const err = new Error("Lịch chiếu không hợp lệ");
       err.statusCode = 422;
-      next(err);
+      return next(err);
     }
 
     let endTime = new Date(startTime);
@@ -181,7 +181,7 @@ exports.updateShowTime = async (req, res, next) => {
     if (conflictShowTime) {
       const err = new Error("Không thể thêm lịch chiếu do trùng lịch");
       err.statusCode = 422;
-      next(err);
+      return next(err);
     }
 
     const currentShowTime = await ShowTime.findById(showTimeId);
@@ -194,7 +194,7 @@ exports.updateShowTime = async (req, res, next) => {
           "Không thể thay đổi lịch chiếu do có vé đã được đặt"
         );
         err.statusCode = 422;
-        next(err);
+        return next(err);
       }
     }
 
@@ -248,7 +248,6 @@ exports.updateShowTime = async (req, res, next) => {
         showTime: showTimeId,
         seat: doubleSeat._id,
       });
-      console.log(singleTicket);
       if (singleTicket && singleTicket.price != singlePrice) {
         const singleTickets = await Ticket.find({
           showTime: showTimeId,
@@ -407,13 +406,13 @@ exports.getShowTimes = async (req, res, next) => {
     let showTimes;
     if (Object.keys(req.query).length > 0) {
       const date = req.query.date;
-      if (!date) {
+      const nextDate = new Date(date);
+      nextDate.setDate(nextDate.getDate() + 1);
+      if (!date || !nextDate.getTime()) {
         const error = new Error("Có lỗi xảy ra, vui lòng thử lại sau");
         error.statusCode = 404;
         return next(error);
       }
-      const nextDate = new Date(date);
-      nextDate.setDate(nextDate.getDate() + 1);
       showTimes = await ShowTime.find({
         startTime: { $gte: date, $lt: nextDate },
       });
