@@ -406,7 +406,7 @@ exports.getShowTimes = async (req, res, next) => {
         return next(error);
       }
       showTimes = await ShowTime.find({
-        startTime: { $gte: date, $lt: getNextDate() },
+        startTime: { $gte: date, $lt: getNextDate(date) },
       })
         .select("-tickets")
         .populate("room", "name")
