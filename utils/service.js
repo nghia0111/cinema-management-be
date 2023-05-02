@@ -14,8 +14,9 @@ exports.getLocalDate = () => {
 }
 
 exports.getNextDate = (date = this.getLocalDate()) => {
-  date.setDate(date.getDate() + 1);
-  date.setHours(0,0,0,0);
-  date.setHours(date.getHours() + 7);
-  return date;
+  const copy = new Date(date);
+  copy.setDate(copy.getDate() + 1);
+  copy.setHours(0,0,0,0);
+  copy.setHours(copy.getHours() + 7);
+  return copy;
 };
