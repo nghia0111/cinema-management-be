@@ -2,7 +2,7 @@ const { validationResult } = require("express-validator");
 const Movie = require("../models/movie");
 const Genre = require("../models/genre");
 
-const { getRole } = require("../utils/roles");
+const { getRole } = require("../utils/service");
 const { userRoles } = require("../constants");
 
 exports.createGenre = async (req, res, next) => {

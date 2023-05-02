@@ -4,7 +4,7 @@ const Genre = require("../models/genre");
 const Actor = require("../models/actor");
 const ShowTime = require("../models/show_time");
 
-const { getRole } = require("../utils/roles");
+const { getRole } = require("../utils/service");
 const { userRoles, movieStatus } = require("../constants");
 
 exports.createMovie = async (req, res, next) => {

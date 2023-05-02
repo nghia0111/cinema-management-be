@@ -1,7 +1,7 @@
 const { validationResult } = require("express-validator");
 const Item = require("../models/item");
 
-const { getRole } = require("../utils/roles");
+const { getRole } = require("../utils/service");
 const { userRoles } = require("../constants");
 
 exports.createItem = async (req, res, next) => {

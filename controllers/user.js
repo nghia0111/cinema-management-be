@@ -6,7 +6,7 @@ const Account = require("../models/account");
 
 const { userRoles, userStatus } = require("../constants");
 
-const { getRole } = require("../utils/roles");
+const { getRole } = require("../utils/service");
 
 exports.createUser = async (req, res, next) => {
   const errors = validationResult(req);

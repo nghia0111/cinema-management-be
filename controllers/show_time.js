@@ -5,7 +5,7 @@ const ShowTime = require("../models/show_time");
 const Movie = require("../models/movie");
 const Ticket = require("../models/ticket");
 
-const { getRole } = require("../utils/roles");
+const { getRole, getLocalDate, getNextDate } = require("../utils/service");
 const { userRoles, seatTypes } = require("../constants");
 
 exports.createShowTime = async (req, res, next) => {
@@ -45,8 +45,7 @@ exports.createShowTime = async (req, res, next) => {
       err.statusCode = 406;
       return next(err);
     }
-
-    if (startTime < Date.now()) {
+    if (startTime < getLocalDate()) {
       const err = new Error("Lịch chiếu không hợp lệ");
       err.statusCode = 422;
       return next(err);
@@ -107,10 +106,8 @@ exports.createShowTime = async (req, res, next) => {
     show_time.tickets = tickets;
     await show_time.save();
 
-    const nextDate = new Date();
-    nextDate.setDate(nextDate.getDate() + 1);
     const showTimes = await ShowTime.find({
-      startTime: { $gt: Date.now(), $lte: nextDate },
+      startTime: { $gt: getLocalDate(), $lte: getNextDate() },
     })
       .populate("room", "name")
       .populate("movie", "name duration");
@@ -163,7 +160,7 @@ exports.updateShowTime = async (req, res, next) => {
       return next(err);
     }
 
-    if (startTime < Date.now()) {
+    if (startTime < getLocalDate()) {
       const err = new Error("Lịch chiếu không hợp lệ");
       err.statusCode = 422;
       return next(err);
@@ -280,10 +277,8 @@ exports.updateShowTime = async (req, res, next) => {
     currentShowTime.doublePrice = doublePrice;
     await currentShowTime.save();
 
-    const nextDate = new Date();
-    nextDate.setDate(nextDate.getDate() + 1);
     const showTimes = await ShowTime.find({
-      startTime: { $gt: Date.now(), $lte: nextDate },
+      startTime: { $gt: getLocalDate(), $lte: getNextDate() },
     })
       .populate("room", "name")
       .populate("movie", "name duration");
@@ -386,10 +381,8 @@ exports.deleteShowTime = async (req, res, next) => {
     await Ticket.deleteMany({ showTime: showTimeId });
     await ShowTime.findByIdAndRemove(showTimeId);
 
-    const nextDate = new Date();
-    nextDate.setDate(nextDate.getDate() + 1);
     const showTimes = await ShowTime.find({
-      startTime: { $gt: Date.now(), $lte: nextDate },
+      startTime: { $gt: getLocalDate(), $lte: getNextDate() },
     })
       .populate("room", "name")
       .populate("movie", "name duration");
@@ -406,18 +399,16 @@ exports.getShowTimes = async (req, res, next) => {
     let showTimes;
     if (Object.keys(req.query).length > 0) {
       const date = req.query.date;
-      const nextDate = new Date(date);
-      nextDate.setDate(nextDate.getDate() + 1);
-      if (!date || !nextDate.getTime()) {
+      if (!date || !getNextDate(date).getTime()) {
         const error = new Error("Có lỗi xảy ra, vui lòng thử lại sau");
         error.statusCode = 404;
         return next(error);
       }
       showTimes = await ShowTime.find({
-        startTime: { $gte: date, $lt: nextDate },
+        startTime: { $gte: date, $lt: getNextDate() },
       });
     } else {
-      showTimes = await ShowTime.find({ startTime: { $gt: Date.now() } });
+      showTimes = await ShowTime.find({ startTime: { $gt: getLocalDate() } });
     }
     await showTimes
       .select("-tickets")

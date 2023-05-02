@@ -5,7 +5,7 @@ const Seat = require("../models/seat");
 const ShowTime = require("../models/show_time");
 const mongoose = require("mongoose");
 
-const { getRole } = require("../utils/roles");
+const { getRole } = require("../utils/service");
 const { userRoles, roomStatus } = require("../constants");
 
 exports.createRoom = async (req, res, next) => {

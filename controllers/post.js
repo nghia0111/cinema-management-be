@@ -2,7 +2,7 @@ const { validationResult } = require("express-validator");
 const Post = require("../models/post");
 const User = require("../models/user");
 
-const { getRole } = require("../utils/roles");
+const { getRole } = require("../utils/service");
 const { userRoles, postStatus } = require("../constants");
 
 exports.createPost = async (req, res, next) => {
@@ -43,7 +43,7 @@ exports.createPost = async (req, res, next) => {
     const posts = await Post.find({ author: author._id }).populate(
       "author",
       "name avatar"
-    );;
+    );
 
     res.status(201).json({ message: "Thêm bài viết thành công", posts: posts });
   } catch (err) {
@@ -90,7 +90,7 @@ exports.updatePost = async (req, res, next) => {
     const posts = await Post.find({ author: currentUser._id }).populate(
       "author",
       "name avatar"
-    );;
+    );
 
     res.status(200).json({
       message: "Chỉnh sửa bài viết thành công",
@@ -125,8 +125,13 @@ exports.deletePost = async (req, res, next) => {
       error.statusCode = 401;
       return next(error);
     }
-    if (currentPost.author.role === userRoles.MANAGER && role === userRoles.MANAGER) {
-      const error = new Error("Quản lý chỉ được xóa bài viết nhân viên cấp dưới");
+    if (
+      currentPost.author.role === userRoles.MANAGER &&
+      role === userRoles.MANAGER
+    ) {
+      const error = new Error(
+        "Quản lý chỉ được xóa bài viết nhân viên cấp dưới"
+      );
       error.statusCode = 401;
       return next(error);
     }
@@ -135,7 +140,7 @@ exports.deletePost = async (req, res, next) => {
     const posts = await Post.find({ author: currentUser._id }).populate(
       "author",
       "name avatar"
-    );;
+    );
     res.status(200).json({ message: "Xoá bài viết thành công", posts: posts });
   } catch (err) {
     const error = new Error(err.message);
@@ -150,7 +155,7 @@ exports.getMyPosts = async (req, res, next) => {
     const posts = await Post.find({ author: currentUser._id }).populate(
       "author",
       "name avatar"
-    );;
+    );
 
     res.status(200).json({ posts });
   } catch (err) {

@@ -2,7 +2,7 @@ const { validationResult } = require("express-validator");
 const RoomType = require("../models/room_type");
 const Room = require("../models/room");
 
-const { getRole } = require("../utils/roles");
+const { getRole } = require("../utils/service");
 const { userRoles } = require("../constants");
 
 exports.createRoomType = async (req, res, next) => {

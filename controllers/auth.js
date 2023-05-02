@@ -6,7 +6,7 @@ const sgMail = require("../utils/sendGridConfig");
 
 const Account = require("../models/account");
 const User = require("../models/user");
-const { getRole } = require("../utils/roles");
+const { getRole } = require("../utils/service");
 const { userRoles } = require("../constants");
 const mongoose = require("mongoose");
 

@@ -1,11 +1,8 @@
 const { validationResult } = require("express-validator");
 const Movie = require("../models/movie");
 const Actor = require("../models/actor");
-// const Account = require("../models/account");
-// const User = require("../models/user")
-// const bcryptjs = require("bcryptjs");
 
-const { getRole } = require("../utils/roles");
+const { getRole } = require("../utils/service");
 const { userRoles } = require("../constants");
 
 exports.createActor = async (req, res, next) => {
