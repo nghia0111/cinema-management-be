@@ -11,12 +11,17 @@ exports.getLocalDate = () => {
   const date = new Date();
   date.setHours(date.getHours() + 7);
   return date;
-}
+};
 
 exports.getNextDate = (date = this.getLocalDate()) => {
   const copy = new Date(date);
   copy.setDate(copy.getDate() + 1);
-  copy.setHours(0,0,0,0);
-  copy.setHours(copy.getHours() + 7);
+  if (copy.getHours() >= 7) {
+    copy.setHours(0, 0, 0, 0);   
+    copy.setHours(copy.getHours() + 7);
+  } else {
+    copy.setHours(0, 0, 0, 0);   
+    copy.setHours(copy.getHours() - 17);
+  }
   return copy;
 };

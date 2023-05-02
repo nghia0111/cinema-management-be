@@ -106,9 +106,12 @@ exports.createShowTime = async (req, res, next) => {
     show_time.tickets = tickets;
     await show_time.save();
 
+    const date = getNextDate();
+    date.setDate(date.getDate() - 1);
     const showTimes = await ShowTime.find({
-      startTime: { $gt: getLocalDate(), $lte: getNextDate() },
+      startTime: { $gte: date, $lt: getNextDate() },
     })
+      .select("-tickets")
       .populate("room", "name")
       .populate("movie", "name duration");
 
@@ -366,9 +369,9 @@ exports.deleteShowTime = async (req, res, next) => {
     }
 
     for (let ticketRows of showTime.tickets) {
-      const isBooked = ticketRows.findIndex(
-        (ticket) => ticket.isBooked === true
-      );
+      const isBooked = ticketRows.findIndex((ticket) => {
+        if (ticket) return ticket.isBooked == true;
+      });
       if (isBooked !== -1) {
         const error = new Error(
           "Không thể xóa lịch chiếu do đã có khách hàng đặt vé"
@@ -381,9 +384,12 @@ exports.deleteShowTime = async (req, res, next) => {
     await Ticket.deleteMany({ showTime: showTimeId });
     await ShowTime.findByIdAndRemove(showTimeId);
 
+    const date = getNextDate();
+    date.setDate(date.getDate() - 1);
     const showTimes = await ShowTime.find({
-      startTime: { $gt: getLocalDate(), $lte: getNextDate() },
+      startTime: { $gte: date, $lt: getNextDate() },
     })
+    .select("-tickets")
       .populate("room", "name")
       .populate("movie", "name duration");
     res.status(200).json({ message: "Xoá lịch chiếu thành công", showTimes });
