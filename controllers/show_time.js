@@ -398,22 +398,27 @@ exports.getShowTimes = async (req, res, next) => {
   try {
     let showTimes;
     if (Object.keys(req.query).length > 0) {
-      const date = req.query.date;
-      if (!date || !getNextDate(date).getTime()) {
+      const dateParam = req.query.date;
+      const date = new Date(dateParam);
+      if (!dateParam || !getNextDate(date).getTime()) {
         const error = new Error("Có lỗi xảy ra, vui lòng thử lại sau");
         error.statusCode = 404;
         return next(error);
       }
       showTimes = await ShowTime.find({
         startTime: { $gte: date, $lt: getNextDate() },
-      });
+      })
+        .select("-tickets")
+        .populate("room", "name")
+        .populate("movie", "name duration");
     } else {
-      showTimes = await ShowTime.find({ startTime: { $gt: getLocalDate() } });
+      showTimes = await ShowTime.find({
+        startTime: { $gt: getLocalDate() },
+      })
+        .select("-tickets")
+        .populate("room", "name")
+        .populate("movie", "name duration");
     }
-    await showTimes
-      .select("-tickets")
-      .populate("room", "name")
-      .populate("movie", "name duration");
 
     res.status(200).json({ showTimes });
   } catch (err) {
