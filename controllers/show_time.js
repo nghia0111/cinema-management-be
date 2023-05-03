@@ -113,7 +113,7 @@ exports.createShowTime = async (req, res, next) => {
     })
       .select("-tickets")
       .populate("room", "name")
-      .populate("movie", "name duration");
+      .populate("movie", "name duration thumbnail");
 
     res.status(201).json({ message: "Thêm lịch chiếu thành công", showTimes });
   } catch (err) {
@@ -284,7 +284,7 @@ exports.updateShowTime = async (req, res, next) => {
       startTime: { $gt: getLocalDate(), $lte: getNextDate() },
     })
       .populate("room", "name")
-      .populate("movie", "name duration");
+      .populate("movie", "name duration thumbnail");
 
     res.status(200).json({
       message: "Chỉnh sửa lịch chiếu thành công",
@@ -302,7 +302,7 @@ exports.getShowTimeById = async (req, res, next) => {
   try {
     const showTime = await ShowTime.findById(showTimeId)
       .populate("room", "name")
-      .populate("movie", "name duration");
+      .populate("movie", "name duration thumbnail");
     if (!showTime) {
       const error = new Error("Lịch chiếu không tồn tại");
       error.statusCode = 406;
@@ -391,7 +391,7 @@ exports.deleteShowTime = async (req, res, next) => {
     })
     .select("-tickets")
       .populate("room", "name")
-      .populate("movie", "name duration");
+      .populate("movie", "name duration thumbnail");
     res.status(200).json({ message: "Xoá lịch chiếu thành công", showTimes });
   } catch (err) {
     const error = new Error(err.message);
@@ -416,14 +416,14 @@ exports.getShowTimes = async (req, res, next) => {
       })
         .select("-tickets")
         .populate("room", "name")
-        .populate("movie", "name duration");
+        .populate("movie", "name duration thumbnail");
     } else {
       showTimes = await ShowTime.find({
         startTime: { $gt: getLocalDate() },
       })
         .select("-tickets")
         .populate("room", "name")
-        .populate("movie", "name duration");
+        .populate("movie", "name duration thumbnail");
     }
 
     res.status(200).json({ showTimes });
