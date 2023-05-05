@@ -3,10 +3,9 @@ const RoomType = require("../models/room_type");
 const Room = require("../models/room");
 const Seat = require("../models/seat");
 const ShowTime = require("../models/show_time");
-const mongoose = require("mongoose");
 
 const { getRole } = require("../utils/service");
-const { userRoles, roomStatus } = require("../constants");
+const { userRoles, roomStatus, seatTypes } = require("../constants");
 
 exports.createRoom = async (req, res, next) => {
   const errors = validationResult(req);
@@ -46,8 +45,11 @@ exports.createRoom = async (req, res, next) => {
               rowIndex: seatRowIndex,
               columnIndex: seatIndex,
               room: room._id.toString(),
-              type: seat,
+              type: seat.type,
             });
+            if (seat.position) {
+              _seat.position = seat.position;
+            }
             await _seat.save();
             return { seatId: _seat._id };
           })
@@ -97,7 +99,7 @@ exports.updateRoom = async (req, res, next) => {
     if (!currentRoom) {
       const err = new Error("Không tìm thấy phòng");
       err.statusCode = 406;
-      next(err);
+      return next(err);
     }
     const existingShowTimes = await ShowTime.findOne({
       room: currentRoom._id.toString(),
@@ -106,7 +108,7 @@ exports.updateRoom = async (req, res, next) => {
     if (existingShowTimes) {
       const err = new Error("Không thể chỉnh sửa phòng do vẫn còn lịch chiếu");
       err.statusCode = 422;
-      next(err);
+      return next(err);
     }
 
     const existingRoom = await Room.findOne({
@@ -138,7 +140,10 @@ exports.updateRoom = async (req, res, next) => {
       }
 
       for (let i = 0; i < currentRoom.seats.length; i++) {
-        await currentRoom.populate({ path: `seats.${i}.seatId`, select: "type" });
+        await currentRoom.populate({
+          path: `seats.${i}.seatId`,
+          select: "type",
+        });
       }
 
       for (let i = 0; i < seats.length; i++) {
@@ -149,16 +154,22 @@ exports.updateRoom = async (req, res, next) => {
               rowIndex: i,
               columnIndex: j,
               room: currentRoom._id.toString(),
-              type: seats[i][j],
+              type: seats[i][j].type,
             });
+            if (seats[i][j].position) {
+              seat.position = seats[i][j].position;
+            }
             await seat.save();
             currentRoom.seats[i].push({ seatId: seat._id.toString() });
-          } else if (
-            seats[i][j].seatId.type !== currentRoom.seats[i][j].seatId.type
-          ) {
-            await Seat.findByIdAndUpdate(seats[i][j].seatId._id, {
-              type: seats[i][j].seatId.type,
-            });
+          } else {
+            const _seat = await Seat.findById(seats[i][j].seatId._id);
+            _seat.type = seats[i][j].seatId.type;
+            if (seats[i][j].seatId.type === seatTypes.DOUBLE) {
+              _seat.position = seats[i][j].seatId.position;
+            } else {
+              if (_seat.position) _seat.position = undefined;
+            }
+            await _seat.save();
           }
         }
       }
@@ -265,7 +276,7 @@ exports.getRoomById = async (req, res, next) => {
       return next(err);
     }
     for (let i = 0; i < room.seats.length; i++) {
-      await room.populate({ path: `seats.${i}.seatId`, select: "type" });
+      await room.populate({ path: `seats.${i}.seatId`, select: "type position" });
     }
 
     res.status(200).json({ room });

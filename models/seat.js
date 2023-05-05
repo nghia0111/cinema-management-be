@@ -31,6 +31,9 @@ const seatSchema = new Schema({
     enum: seatTypes,
     require: true,
   },
+  position: {
+    type: String,
+  }
 });
 
 module.exports = mongoose.model("Seat", seatSchema);
