@@ -11,14 +11,16 @@ const transactionSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "User",
     },
-    tickets: [{
-      type: Schema.Types.ObjectId,
-      ref: "Ticket",
-      require: true,
-    }],
+    tickets: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Ticket",
+        require: true,
+      },
+    ],
     items: [
       {
-        item: {
+        id: {
           type: Schema.Types.ObjectId,
           ref: "Item",
         },
