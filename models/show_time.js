@@ -41,11 +41,7 @@ const showTimeSchema = new Schema({
         ticketId: {
           type: Schema.Types.ObjectId,
           ref: "Ticket",
-        },
-        isBooked: {
-          type: Boolean,
-          default: false,
-        },
+        }
       },
     ],
   ],

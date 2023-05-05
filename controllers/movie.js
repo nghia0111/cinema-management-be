@@ -4,7 +4,7 @@ const Genre = require("../models/genre");
 const Actor = require("../models/actor");
 const ShowTime = require("../models/show_time");
 
-const { getRole } = require("../utils/service");
+const { getRole, getLocalDate } = require("../utils/service");
 const { userRoles, movieStatus } = require("../constants");
 
 exports.createMovie = async (req, res, next) => {
@@ -305,6 +305,22 @@ exports.getMovieBySlug = async (req, res, next) => {
     }
 
     res.status(200).json({ movie: _movie });
+  } catch (err) {
+    const error = new Error(err.message);
+    error.statusCode = 500;
+    next(error);
+  }
+};
+
+exports.getIncomingMovies = async (req, res, next) => {
+  try {
+    const movies = await Movie.find({
+      premiereDay: { $gte: getLocalDate(), status: movieStatus.ACTIVE },
+    })
+      .populate("genres")
+      .populate("actors", "name avatar");;
+
+    res.status(200).json({ movies });
   } catch (err) {
     const error = new Error(err.message);
     error.statusCode = 500;

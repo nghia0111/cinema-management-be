@@ -87,7 +87,7 @@ exports.createShowTime = async (req, res, next) => {
                 price: singlePrice,
               });
               await ticket.save();
-              return { ticketId: ticket._id.toString(), isBooked: false };
+              return { ticketId: ticket._id.toString() };
             } else if (currentSeat.type === seatTypes.DOUBLE) {
               const ticket = new Ticket({
                 showTime: show_time._id.toString(),
@@ -95,7 +95,7 @@ exports.createShowTime = async (req, res, next) => {
                 price: doublePrice,
               });
               await ticket.save();
-              return { ticketId: ticket._id.toString(), isBooked: false };
+              return { ticketId: ticket._id.toString() };
             }
           })
         );
@@ -185,17 +185,16 @@ exports.updateShowTime = async (req, res, next) => {
     }
 
     const currentShowTime = await ShowTime.findById(showTimeId);
-    for (let rowTickets of currentShowTime.tickets) {
-      const isBooked = rowTickets.findIndex((ticket) => {
-        if (ticket) return ticket.isBooked == true;
-      });
-      if (isBooked !== -1) {
-        const err = new Error(
-          "Không thể thay đổi lịch chiếu do có vé đã được đặt"
-        );
-        err.statusCode = 422;
-        return next(err);
-      }
+    const bookedTicket = await Ticket.findOne({
+      showTime: showTimeId,
+      isBooked: true,
+    });
+    if (bookedTicket) {
+      const err = new Error(
+        "Không thể thay đổi lịch chiếu do có vé đã được đặt"
+      );
+      err.statusCode = 422;
+      return next(err);
     }
 
     //create tickets for new room
@@ -213,7 +212,7 @@ exports.updateShowTime = async (req, res, next) => {
                   price: singlePrice,
                 });
                 await ticket.save();
-                return { ticketId: ticket._id.toString(), isBooked: false };
+                return { ticketId: ticket._id.toString() };
               } else if (currentSeat.type === seatTypes.DOUBLE) {
                 const ticket = new Ticket({
                   showTime: show_time._id.toString(),
@@ -221,7 +220,7 @@ exports.updateShowTime = async (req, res, next) => {
                   price: doublePrice,
                 });
                 await ticket.save();
-                return { ticketId: ticket._id.toString(), isBooked: false };
+                return { ticketId: ticket._id.toString() };
               }
             })
           );
@@ -322,8 +321,8 @@ exports.getShowTimeById = async (req, res, next) => {
       if (showTime.tickets[i].length > 0)
         await showTime.populate({
           path: `tickets.${i}.ticketId`,
-          select: "seat price",
-          populate: { path: "seat", select: "name type" },
+          select: "seat price isBooked",
+          populate: { path: "seat", select: "name type position" },
         });
       for (let k = 0; k < nullIndices.length; k++) {
         if (showTime.tickets[i].length == 0) {
@@ -368,17 +367,16 @@ exports.deleteShowTime = async (req, res, next) => {
       return next(error);
     }
 
-    for (let ticketRows of showTime.tickets) {
-      const isBooked = ticketRows.findIndex((ticket) => {
-        if (ticket) return ticket.isBooked == true;
-      });
-      if (isBooked !== -1) {
-        const error = new Error(
-          "Không thể xóa lịch chiếu do đã có khách hàng đặt vé"
-        );
-        error.statusCode = 422;
-        return next(error);
-      }
+    const bookedTicket = await Ticket.findOne({
+      showTime: showTimeId,
+      isBooked: true,
+    });
+    if (bookedTicket) {
+      const err = new Error(
+        "Không thể xóa lịch chiếu do có vé đã được đặt"
+      );
+      err.statusCode = 422;
+      return next(err);
     }
 
     await Ticket.deleteMany({ showTime: showTimeId });
@@ -389,7 +387,7 @@ exports.deleteShowTime = async (req, res, next) => {
     const showTimes = await ShowTime.find({
       startTime: { $gte: date, $lt: getNextDate() },
     })
-    .select("-tickets")
+      .select("-tickets")
       .populate("room", "name")
       .populate("movie", "name duration thumbnail");
     res.status(200).json({ message: "Xoá lịch chiếu thành công", showTimes });
