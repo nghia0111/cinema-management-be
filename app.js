@@ -36,6 +36,7 @@ const roomRoutes = require("./routes/room");
 const imageRoutes = require("./routes/image");
 const postRoutes = require("./routes/post");
 const showTimeRoutes = require("./routes/show_time");
+const transactionRoutes = require("./routes/transaction");
 
 app.use("/auth", authRoutes);
 app.use(movieRoutes);
@@ -48,6 +49,7 @@ app.use(roomRoutes);
 app.use(imageRoutes);
 app.use(postRoutes);
 app.use(showTimeRoutes);
+app.use(transactionRoutes);
 app.use(helmet());
 app.use(compression());
 

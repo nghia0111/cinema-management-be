@@ -62,11 +62,27 @@ exports.createTransaction = async (req, res, next) => {
       items,
       totalPrice,
     });
-    if (role === userRoles.CUSTOMER) transaction.customer = user._id.toString();
+    if (user.role === userRoles.CUSTOMER)
+      transaction.customer = user._id.toString();
     else transaction.staff = user._id.toString();
     await transaction.save();
 
-    res.status(201).json({ message: "Đặt vé thành công", transaction });
+    res.status(201).json({ message: "Đặt vé thành công" });
+  } catch (err) {
+    const error = new Error(err.message);
+    error.statusCode = 500;
+    next(error);
+  }
+};
+
+exports.getTransactions = async (req, res, next) => {
+  try {
+    const user = await User.findOne({ account: req.accountId });
+    let transaction;
+    if (user.role === userRoles.CUSTOMER) {
+      transaction = await Transaction.find({ customer: user._id.toString() });
+    } else transaction = await Transaction.find();
+    res.status(200).json({ transaction });
   } catch (err) {
     const error = new Error(err.message);
     error.statusCode = 500;
