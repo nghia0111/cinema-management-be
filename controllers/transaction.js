@@ -78,11 +78,39 @@ exports.createTransaction = async (req, res, next) => {
 exports.getTransactions = async (req, res, next) => {
   try {
     const user = await User.findOne({ account: req.accountId });
-    let transaction;
+    let transactions;
     if (user.role === userRoles.CUSTOMER) {
-      transaction = await Transaction.find({ customer: user._id.toString() });
-    } else transaction = await Transaction.find();
-    res.status(200).json({ transaction });
+      transactions = await Transaction.find({ customer: user._id.toString() })
+        .populate("staff", "name")
+        .populate("customer", "name")
+        .populate({
+          path: "tickets",
+          select: "seat",
+          populate: { path: "seat", select: "name" },
+        })
+        .populate({ path: "items.id", select: "-image" });
+    } else transactions = await Transaction.find()
+      .populate("staff", "name")
+      .populate("customer", "name")
+      .populate({
+        path: "tickets",
+        select: "seat",
+        populate: { path: "seat", select: "name" },
+      })
+      .populate({ path: "items.id", select: "-image" });
+    let _transactions = []
+    for(let transaction of transactions){
+      const ticketId = transaction.tickets[0]._id;
+      const existingTicket = await Ticket.findById(ticketId).populate({path: "showTime", select: "startTime movie", populate: {path: "movie", select: "name"}});
+      transaction = transaction.toJSON();
+      transaction.showTime = {
+        startTime: existingTicket.showTime.startTime,
+        movie: existingTicket.showTime.movie.name,
+      };
+      _transactions.push(transaction);
+    }
+    
+    res.status(200).json({ _transactions });
   } catch (err) {
     const error = new Error(err.message);
     error.statusCode = 500;

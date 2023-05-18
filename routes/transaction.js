@@ -1,5 +1,5 @@
 const express = require("express");
-const { body } = require("express-validator");
+const { body, check } = require("express-validator");
 const router = express.Router();
 
 const transactionController = require("../controllers/transaction");
@@ -7,6 +7,7 @@ const isAuth = require("../middlewares/is-auth");
 
 const transactionValidation = [
   body("tickets", "Vui lòng chọn vé cần đặt").isArray({ min: 1 }),
+  check("items.quantity").isInt({min: 0})
 ];
 
 router.post("/transactions", isAuth, transactionValidation, transactionController.createTransaction);
