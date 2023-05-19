@@ -7,7 +7,7 @@ const isAuth = require("../middlewares/is-auth");
 
 const transactionValidation = [
   body("tickets", "Vui lòng chọn vé cần đặt").isArray({ min: 1 }),
-  body("items.quantity", "Số lượng bắp nước phải lớn hơn 0").isInt({ min: 1 }),
+  body("items.*.quantity", "Số lượng bắp nước phải lớn hơn 0").isInt({ min: 1 }),
 ];
 
 router.post(
