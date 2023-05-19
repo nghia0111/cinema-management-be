@@ -79,25 +79,17 @@ exports.getTransactions = async (req, res, next) => {
   try {
     const user = await User.findOne({ account: req.accountId });
     let transactions;
-    if (user.role === userRoles.CUSTOMER) {
-      transactions = await Transaction.find({ customer: user._id.toString() })
+    let selector;
+    selector = user.role === userRoles.CUSTOMER? { customer: user._id.toString() } : {}
+      transactions = await Transaction.find(selector)
         .populate("staff", "name")
         .populate("customer", "name")
         .populate({
           path: "tickets",
-          select: "seat",
+          select: "seat price",
           populate: { path: "seat", select: "name" },
         })
         .populate({ path: "items.id", select: "-image" });
-    } else transactions = await Transaction.find()
-      .populate("staff", "name")
-      .populate("customer", "name")
-      .populate({
-        path: "tickets",
-        select: "seat",
-        populate: { path: "seat", select: "name" },
-      })
-      .populate({ path: "items.id", select: "-image" });
     let _transactions = []
     for(let transaction of transactions){
       const ticketId = transaction.tickets[0]._id;
