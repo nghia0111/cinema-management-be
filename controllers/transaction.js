@@ -67,6 +67,11 @@ exports.createTransaction = async (req, res, next) => {
     else transaction.staff = user._id.toString();
     await transaction.save();
 
+    for(let ticket of existingTickets){
+      ticket.isBooked = true;
+      await ticket.save();
+    }
+
     res.status(201).json({ message: "Đặt vé thành công" });
   } catch (err) {
     const error = new Error(err.message);
