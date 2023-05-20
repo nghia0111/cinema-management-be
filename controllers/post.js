@@ -70,7 +70,7 @@ exports.updatePost = async (req, res, next) => {
     if (!currentPost) {
       const err = new Error("Không tìm thấy bài viết");
       err.statusCode = 406;
-      next(err);
+      return next(err);
     }
 
     const currentUser = await User.findOne({ account: req.accountId });
@@ -110,7 +110,7 @@ exports.deletePost = async (req, res, next) => {
     if (!currentPost) {
       const err = new Error("Không tìm thấy bài viết");
       err.statusCode = 406;
-      next(err);
+      return next(err);
     }
 
     const role = await getRole(req.accountId);
@@ -190,7 +190,7 @@ exports.getPostBySlug = async (req, res, next) => {
     if (!post) {
       const err = new Error("Không tìm thấy bài viết");
       err.statusCode = 406;
-      next(err);
+      return next(err);
     }
 
     post.view += 1;
