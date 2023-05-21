@@ -47,13 +47,13 @@ exports.createMovie = async (req, res, next) => {
     if (premiereDay >= endDay) {
       const err = new Error("Ngày kết thúc phải lớn hơn ngày khởi chiếu");
       err.statusCode = 422;
-      next(err);
+      return next(err);
     }
 
     if (Date.now() >= endDay) {
       const err = new Error("Ngày kết thúc phải lớn hơn hiện tại");
       err.statusCode = 422;
-      next(err);
+      return next(err);
     }
 
     const _movie = new Movie({
@@ -137,7 +137,7 @@ exports.updateMovie = async (req, res, next) => {
     if (!currentMovie) {
       const err = new Error("Không tìm thấy phim");
       err.statusCode = 406;
-      next(err);
+      return next(err);
     }
 
     const existingShowTime = await ShowTime.findOne({movie: movieId});
@@ -146,14 +146,14 @@ exports.updateMovie = async (req, res, next) => {
     if(premiereDay != currentMovie.premiereDay && existingShowTime){
       const err = new Error("Không thể chỉnh sửa ngày khởi chiếu do phim đã có lịch chiếu");
       err.statusCode = 422;
-      next(err);
+      return next(err);
     }
     if (endDay != currentMovie.endDay && upcomingShowTime) {
       const err = new Error(
         "Không thể chỉnh sửa ngày kết thúc do phim đã có lịch chiếu"
       );
       err.statusCode = 422;
-      next(err);
+      return next(err);
     }
 
     if(premiereDay >= endDay){
@@ -161,7 +161,7 @@ exports.updateMovie = async (req, res, next) => {
         "Ngày kết thúc phải lớn hơn ngày khởi chiếu"
       );
       err.statusCode = 422;
-      next(err);
+      return next(err);
     }
 
     const removedActors = currentMovie.actors.reduce(
