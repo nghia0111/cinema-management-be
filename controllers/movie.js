@@ -80,6 +80,7 @@ exports.createMovie = async (req, res, next) => {
         return next(err);
       }
       existingActor.movies.push(_movie._id.toString());
+      await existingActor.save();
     }
 
     const movies = await Movie.find({status: movieStatus.ACTIVE})
@@ -193,10 +194,12 @@ exports.updateMovie = async (req, res, next) => {
     for (let actor of addedActors) {
       const existingActor = await Actor.findById(actor);
       existingActor.movies.push(currentMovie._id);
+      await existingActor.save();
     }
     for (let actor of removedActors) {
       const existingActor = await Actor.findById(actor);
       existingActor.movies.pull(currentMovie._id);
+      await existingActor.save();
     }
 
     const movies = await Movie.find({status: movieStatus.ACTIVE})
@@ -253,6 +256,7 @@ exports.deleteMovie = async (req, res, next) => {
         return next(error);
       }
       existingActor.movies.pull(_movie._id.toString());
+      await existingActor.save();
     }
 
     const existingShowTime = await ShowTime.findOne({ movie: movieId });
