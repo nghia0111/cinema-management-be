@@ -39,7 +39,7 @@ exports.createActor = async (req, res, next) => {
     });
     await actor.save();
 
-    const actors = await Actor.find();
+    const actors = await Actor.find().populate("movies", "name thumbnail slug");
 
     res
       .status(201)
@@ -92,7 +92,7 @@ exports.updateActor = async (req, res, next) => {
     currentActor.images = images;
     await currentActor.save();
 
-    const actors = await Actor.find();
+    const actors = await Actor.find().populate("movies", "name thumbnail slug");
     res
       .status(200)
       .json({ message: "Chỉnh sửa diễn viên thành công", actors: actors });
@@ -134,7 +134,7 @@ exports.deleteActor = async (req, res, next) => {
       existingMovie.actors.pull(actorId);
     }
     await Actor.findByIdAndRemove(actorId);
-    const actors = await Actor.find();
+    const actors = await Actor.find().populate("movies", "name thumbnail slug");
     res
       .status(200)
       .json({ message: "Xoá diễn viên thành công", actors: actors });
@@ -147,7 +147,7 @@ exports.deleteActor = async (req, res, next) => {
 
 exports.getActors = async (req, res, next) => {
   try {
-    const actors = await Actor.find();
+    const actors = await Actor.find().populate("movies", "name thumbnail slug");
 
     res.status(200).json({ actors });
   } catch (err) {
@@ -160,10 +160,10 @@ exports.getActors = async (req, res, next) => {
 exports.getActorBySlug = async (req, res, next) => {
   const actorSlug = req.params.actorSlug;
   try {
-    let actor = await Actor.findOne({ slug: actorSlug });
-    if (req.query.client) {
-      actor.populate("movies", "name");
-    }
+    let actor = await Actor.findOne({ slug: actorSlug }).populate(
+      "movies",
+      "name thumbnail slug"
+    );
     if (!actor) {
       const error = new Error("Diễn viên không tồn tại");
       error.statusCode = 406;
