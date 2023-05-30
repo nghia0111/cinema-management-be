@@ -144,12 +144,17 @@ exports.updateMovie = async (req, res, next) => {
     const existingShowTime = await ShowTime.findOne({movie: movieId});
     const upcomingShowTime = await ShowTime.findOne({startTime: {$gt: Date.now()}, movie: movieId});
 
-    if(premiereDay != currentMovie.premiereDay && existingShowTime){
-      const err = new Error("Không thể chỉnh sửa ngày khởi chiếu do phim đã có lịch chiếu");
+    if (
+      premiereDay.getTime() != currentMovie.premiereDay.getTime() &&
+      existingShowTime
+    ) {
+      const err = new Error(
+        "Không thể chỉnh sửa ngày khởi chiếu do phim đã có lịch chiếu"
+      );
       err.statusCode = 422;
       return next(err);
     }
-    if (endDay != currentMovie.endDay && upcomingShowTime) {
+    if (endDay.getTime() != currentMovie.endDay.getTime() && upcomingShowTime) {
       const err = new Error(
         "Không thể chỉnh sửa ngày kết thúc do phim đã có lịch chiếu"
       );
