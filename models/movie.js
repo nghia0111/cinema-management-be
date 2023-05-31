@@ -67,11 +67,23 @@ const movieSchemma = new Schema({
     slug: "name",
     unique: true,
   },
+  reviews: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: "Rating",
+    },
+  ],
+  comments: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: "Comment",
+    },
+  ],
   status: {
     type: String,
     enum: movieStatus,
-    default: movieStatus.ACTIVE
-  }
+    default: movieStatus.ACTIVE,
+  },
 });
 
 module.exports = mongoose.model("Movie", movieSchemma);
