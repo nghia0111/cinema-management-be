@@ -10,7 +10,7 @@ const itemValidation = [
   body("price", "Giá sản phẩm không hợp lệ").trim().isInt({min: 0}),
 ];
 
-router.get("/items", isAuth, itemController.getItems);
+router.get("/items", itemController.getItems);
 
 router.post("/items", isAuth, itemValidation, itemController.createItem);
 
