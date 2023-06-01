@@ -304,9 +304,22 @@ exports.getMovies = async (req, res, next) => {
 exports.getMovieBySlug = async (req, res, next) => {
   const movieSlug = req.params.movieSlug;
   try {
-    const _movie = await Movie.findOne({ slug: movieSlug, status: movieStatus.ACTIVE })
+    const _movie = await Movie.findOne({
+      slug: movieSlug,
+      status: movieStatus.ACTIVE,
+    })
       .populate("genres")
-      .populate("actors", "name avatar");
+      .populate("actors", "name avatar")
+      .populate({
+        path: "comments",
+        populate: [
+          { path: "author", select: "name avatar" },
+          {
+            path: "replies",
+            populate: { path: "author", select: "name avatar" },
+          },
+        ],
+      });;
     if (!_movie) {
       const error = new Error("Phim không tồn tại");
       error.statusCode = 406;
