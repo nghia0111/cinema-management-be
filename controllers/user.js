@@ -149,36 +149,6 @@ exports.deleteUser = async (req, res, next) => {
   }
 };
 
-// exports.deleteSelectedUsers = async (req, res, next) => {
-//   const userIds = req.body.userIds;
-//   try {
-//     const currentUserRole = await getRole(req.accountId);
-//     if (
-//       currentUserRole != userRoles.MANAGER ||
-//       currentUserRole != userRoles.OWNER
-//     ) {
-//       const error = new Error(
-//         "Chỉ có quản lý hoặc chủ rạp mới được xóa nhân viên"
-//       );
-//       error.statusCode = 401;
-//       return next(error);
-//     }
-
-//     const filteredUsers = await User.find({ _id: { $in: userIds } });
-//     for (let index = 0; index < filteredUsers.length; index++) {
-//       const currentUser = filteredUsers[index];
-//       currentUser.status = userStatus.NONACTIVE;
-//       await currentUser.save();
-//     }
-
-//     res.status(200).json({ message: "Xóa nhân viên thành công" });
-//   } catch (err) {
-//     const error = new Error(err.message);
-//     error.statusCode = 500;
-//     next(error);
-//   }
-// };
-
 exports.updateUser = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {

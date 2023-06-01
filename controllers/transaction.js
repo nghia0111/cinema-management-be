@@ -4,7 +4,7 @@ const Item = require("../models/item");
 const Transaction = require("../models/transaction");
 const User = require("../models/user");
 
-const { getRole } = require("../utils/service");
+const { getRole, getTransactions } = require("../utils/service");
 const { userRoles, seatTypes } = require("../constants");
 
 exports.createTransaction = async (req, res, next) => {
@@ -67,7 +67,7 @@ exports.createTransaction = async (req, res, next) => {
     else transaction.staff = user._id.toString();
     await transaction.save();
 
-    for(let ticket of existingTickets){
+    for (let ticket of existingTickets) {
       ticket.isBooked = true;
       await ticket.save();
     }
@@ -83,30 +83,9 @@ exports.createTransaction = async (req, res, next) => {
 exports.getTransactions = async (req, res, next) => {
   try {
     const user = await User.findOne({ account: req.accountId });
-    let transactions;
-    let selector;
-    selector = user.role === userRoles.CUSTOMER? { customer: user._id.toString() } : {}
-      transactions = await Transaction.find(selector)
-        .populate("staff", "name")
-        .populate("customer", "name")
-        .populate({
-          path: "tickets",
-          select: "seat price",
-          populate: { path: "seat", select: "name" },
-        })
-        .populate({ path: "items.id", select: "-image" });
-    let _transactions = []
-    for(let transaction of transactions){
-      const ticketId = transaction.tickets[0]._id;
-      const existingTicket = await Ticket.findById(ticketId).populate({path: "showTime", select: "startTime movie", populate: {path: "movie", select: "name"}});
-      transaction = transaction.toJSON();
-      transaction.showTime = {
-        startTime: existingTicket.showTime.startTime,
-        movie: existingTicket.showTime.movie.name,
-      };
-      _transactions.push(transaction);
-    }
-    
+    const selector =
+      user.role === userRoles.CUSTOMER ? { customer: user._id.toString() } : {};
+    const _transactions = await getTransactions(selector);
     res.status(200).json({ _transactions });
   } catch (err) {
     const error = new Error(err.message);
