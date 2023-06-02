@@ -50,7 +50,7 @@ exports.getTransactions = async (selector) => {
       transaction = transaction.toJSON();
       transaction.showTime = {
         startTime: existingTicket.showTime.startTime,
-        movieId: existingTicket.showTime.movie._id,
+        movieId: existingTicket.showTime.movie._id.toString(),
         movieName: existingTicket.showTime.movie.name,
         thumbnail: existingTicket.showTime.movie.thumbnail,
       };
