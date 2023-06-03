@@ -22,7 +22,7 @@ exports.createComment = async (req, res, next) => {
       err.statusCode = 406;
       return next(err);
     }
-    let _parentComment;
+    let _parentComment = null;
     if (parentComment) {
       _parentComment = await Comment.findById(parentComment);
       if (!_parentComment) {
@@ -42,7 +42,7 @@ exports.createComment = async (req, res, next) => {
       author: author._id.toString(),
       comment,
     });
-    if (req.params.canReply === false) _comment.isReply = false;
+    if (_parentComment) _comment.isReply = false;
     await _comment.save();
     if (parentComment) {
       _parentComment.replies.push(_comment._id);
