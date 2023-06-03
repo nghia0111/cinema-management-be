@@ -45,9 +45,9 @@ exports.createComment = async (req, res, next) => {
     if (_parentComment) _comment.isReply = false;
     await _comment.save();
     if (parentComment) {
-      _parentComment.replies.push(_comment._id);
+      _parentComment.replies.unshift(_comment._id);
       await _parentComment.save();
-    } else _movie.comments.push(_comment._id);
+    } else _movie.comments.unshift(_comment._id);
     await _movie.save();
     await _movie.populate({
       path: "comments",
@@ -213,14 +213,14 @@ exports.reactComment = async (req, res, next) => {
       return next(err);
     }
 
-    if(action === "like"){
+    if (action === "like") {
       if (currentComment.likes.includes(currentUser._id))
         currentComment.likes.pull(currentUser._id);
       else {
         currentComment.dislikes.pull(currentUser._id);
         currentComment.likes.push(currentUser._id);
       }
-    } else if(action === "dislike"){
+    } else if (action === "dislike") {
       if (currentComment.dislikes.includes(currentUser._id))
         currentComment.dislikes.pull(currentUser._id);
       else {
@@ -228,7 +228,7 @@ exports.reactComment = async (req, res, next) => {
         currentComment.dislikes.push(currentUser._id);
       }
     }
-            await currentComment.save();
+    await currentComment.save();
     await _movie.populate({
       path: "comments",
       populate: [
