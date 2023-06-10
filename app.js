@@ -39,6 +39,7 @@ const showTimeRoutes = require("./routes/show_time");
 const transactionRoutes = require("./routes/transaction");
 const commentRoutes = require("./routes/comment");
 const ratingRoutes = require("./routes/rating");
+const reportRoutes = require("./routes/report")
 
 app.use("/auth", authRoutes);
 app.use(movieRoutes);
@@ -54,6 +55,7 @@ app.use(showTimeRoutes);
 app.use(transactionRoutes);
 app.use(commentRoutes);
 app.use(ratingRoutes);
+app.use(reportRoutes)
 app.use(helmet());
 app.use(compression());
 

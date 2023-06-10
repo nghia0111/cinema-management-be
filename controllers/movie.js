@@ -50,7 +50,7 @@ exports.createMovie = async (req, res, next) => {
       return next(err);
     }
 
-    if (Date.now() >= endDay) {
+    if (getLocalDate() >= endDay) {
       const err = new Error("Ngày kết thúc phải lớn hơn hiện tại");
       err.statusCode = 422;
       return next(err);

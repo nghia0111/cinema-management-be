@@ -4,8 +4,8 @@ const Item = require("../models/item");
 const Transaction = require("../models/transaction");
 const User = require("../models/user");
 
-const { getRole, getTransactions } = require("../utils/service");
-const { userRoles, seatTypes } = require("../constants");
+const { getTransactions } = require("../utils/service");
+const { userRoles } = require("../constants");
 
 exports.createTransaction = async (req, res, next) => {
   const errors = validationResult(req);
