@@ -35,7 +35,7 @@ exports.getDashboardData = async (req, res, next) => {
     const tickets = await Ticket.find({ showTime: { $in: showTimeIds } });
     data.soldTickets = tickets.filter((ticket) => ticket.isBooked).length;
     data.remainingTickets = tickets.length - data.soldTickets;
-    const movies = await Movie.find({endDay: {$gt: getLocalDate()}}).countDocuments();
+    const movies = await Movie.find({endDay: {$gt: getLocalDate()}, premiereDay: {$lte: getLocalDate()}}).countDocuments();
     data.onGoingMovies = movies;
     const recentTransactions = await Transaction.find()
       .sort({ createdAt: -1 })
@@ -66,3 +66,4 @@ exports.getDashboardData = async (req, res, next) => {
     next(error);
   }
 };
+

@@ -220,11 +220,10 @@ exports.updateUser = async (req, res, next) => {
     user.birthday = birthday;
 
     await user.save();
-    const users = await User.find();
 
     res.status(201).json({
       message: "Cập nhật thông tin thành công",
-      users: users,
+      user: user,
     });
   } catch (err) {
     const error = new Error(err.message);
