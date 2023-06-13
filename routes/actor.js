@@ -16,8 +16,6 @@ router.get("/actors", actorController.getActors);
 
 router.get("/actors/:actorSlug", actorController.getActorBySlug);
 
-router.get("/nations", actorController.getActorNations);
-
 router.post("/actors", isAuth, actorValidation, actorController.createActor);
 
 router.put(

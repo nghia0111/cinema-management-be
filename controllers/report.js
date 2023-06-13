@@ -1,8 +1,9 @@
 const Transaction = require("../models/transaction");
 const Ticket = require("../models/ticket");
 const ShowTime = require("../models/show_time");
+const Movie = require("../models/movie");
 
-const { getRole } = require("../utils/service");
+const { getRole, getLocalDate } = require("../utils/service");
 const { userRoles } = require("../constants");
 
 exports.getDashboardData = async (req, res, next) => {
@@ -34,6 +35,8 @@ exports.getDashboardData = async (req, res, next) => {
     const tickets = await Ticket.find({ showTime: { $in: showTimeIds } });
     data.soldTickets = tickets.filter((ticket) => ticket.isBooked).length;
     data.remainingTickets = tickets.length - data.soldTickets;
+    const movies = await Movie.find({endDay: {$gt: getLocalDate()}}).countDocuments();
+    data.onGoingMovies = movies;
     const recentTransactions = await Transaction.find()
       .sort({ createdAt: -1 })
       .limit(5)
@@ -46,10 +49,13 @@ exports.getDashboardData = async (req, res, next) => {
       ).populate({
         path: "showTime",
         select: "movie",
-        populate: { path: "movie", select: "name" },
+        populate: { path: "movie", select: "name thumbnail" },
       });
       let transaction = recentTransactions[i].toJSON();
-      transaction.movie = ticket.showTime.movie.name;
+      transaction.movie = {
+        name: ticket.showTime.movie.name,
+        thumbnail: ticket.showTime.movie.thumbnail
+      }
       recentTransactions[i] = { ...transaction };
     }
     data.recentTransactions = recentTransactions;
