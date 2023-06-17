@@ -3,6 +3,8 @@ const router = express.Router();
 
 const dataController = require("../controllers/data");
 
-router.get("/nations", dataController.getActorNations);
+router.get("/actor-nations", dataController.getActorNations);
+
+router.get("/nations", dataController.getNations);
 
 module.exports = router;
