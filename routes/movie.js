@@ -20,8 +20,6 @@ const movieValidation = [
 
 router.get("/movies", movieController.getMovies);
 
-router.get("/incoming-movies", movieController.getIncomingMovies);
-
 router.get("/movies/:movieSlug", movieController.getMovieBySlug);
 
 router.post("/movies", isAuth, movieValidation, movieController.createMovie);

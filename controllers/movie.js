@@ -83,7 +83,7 @@ exports.createMovie = async (req, res, next) => {
       await existingActor.save();
     }
 
-    const movies = await Movie.find({status: movieStatus.ACTIVE})
+    const movies = await Movie.find({ status: movieStatus.ACTIVE })
       .populate("genres")
       .populate("actors", "name avatar");
 
@@ -141,8 +141,11 @@ exports.updateMovie = async (req, res, next) => {
       return next(err);
     }
 
-    const existingShowTime = await ShowTime.findOne({movie: movieId});
-    const upcomingShowTime = await ShowTime.findOne({startTime: {$gt: Date.now()}, movie: movieId});
+    const existingShowTime = await ShowTime.findOne({ movie: movieId });
+    const upcomingShowTime = await ShowTime.findOne({
+      startTime: { $gt: Date.now() },
+      movie: movieId,
+    });
 
     if (
       premiereDay.getTime() != currentMovie.premiereDay.getTime() &&
@@ -162,10 +165,8 @@ exports.updateMovie = async (req, res, next) => {
       return next(err);
     }
 
-    if(premiereDay >= endDay){
-      const err = new Error(
-        "Ngày kết thúc phải lớn hơn ngày khởi chiếu"
-      );
+    if (premiereDay >= endDay) {
+      const err = new Error("Ngày kết thúc phải lớn hơn ngày khởi chiếu");
       err.statusCode = 422;
       return next(err);
     }
@@ -207,7 +208,7 @@ exports.updateMovie = async (req, res, next) => {
       await existingActor.save();
     }
 
-    const movies = await Movie.find({status: movieStatus.ACTIVE})
+    const movies = await Movie.find({ status: movieStatus.ACTIVE })
       .populate("genres")
       .populate("actors", "name avatar");
 
@@ -270,7 +271,7 @@ exports.deleteMovie = async (req, res, next) => {
       await _movie.save();
     } else await Movie.findByIdAndRemove(movieId);
 
-    const movies = await Movie.find({status: movieStatus.ACTIVE})
+    const movies = await Movie.find({ status: movieStatus.ACTIVE })
       .populate("genres")
       .populate("actors", "name avatar");
     res.status(200).json({ message: "Xoá phim thành công", movies: movies });
@@ -284,14 +285,25 @@ exports.deleteMovie = async (req, res, next) => {
 exports.getMovies = async (req, res, next) => {
   try {
     let movies;
+    let selector = { status: movieStatus.ACTIVE };
     if (Object.keys(req.query).length > 0) {
-      movies = await Movie.find({ endDay: {$gt: Date.now()}, status: movieStatus.ACTIVE })
-        .populate("genres")
-        .populate("actors", "name avatar");
-    } else
-      movies = await Movie.find({ status: movieStatus.ACTIVE })
-        .populate("genres")
-        .populate("actors", "name avatar");
+      const status = req.query.status;
+      if (status === "showing") {
+        selector = {
+          premiereDay: { $lte: getLocalDate() },
+          endDay: { $gt: getLocalDate() },
+          status: movieStatus.ACTIVE,
+        };
+      } else if (status === "coming") {
+        selector = {
+          premiereDay: { $gt: getLocalDate() },
+          status: movieStatus.ACTIVE,
+        };
+      }
+    }
+    movies = await Movie.find(selector)
+      .populate("genres")
+      .populate("actors", "name avatar");
 
     res.status(200).json({ movies });
   } catch (err) {
@@ -319,7 +331,7 @@ exports.getMovieBySlug = async (req, res, next) => {
             populate: { path: "author", select: "name avatar" },
           },
         ],
-      });;
+      });
     if (!_movie) {
       const error = new Error("Phim không tồn tại");
       error.statusCode = 406;
@@ -327,22 +339,6 @@ exports.getMovieBySlug = async (req, res, next) => {
     }
 
     res.status(200).json({ movie: _movie });
-  } catch (err) {
-    const error = new Error(err.message);
-    error.statusCode = 500;
-    next(error);
-  }
-};
-
-exports.getIncomingMovies = async (req, res, next) => {
-  try {
-    const movies = await Movie.find({
-      premiereDay: { $gte: getLocalDate(), status: movieStatus.ACTIVE },
-    })
-      .populate("genres")
-      .populate("actors", "name avatar");;
-
-    res.status(200).json({ movies });
   } catch (err) {
     const error = new Error(err.message);
     error.statusCode = 500;
