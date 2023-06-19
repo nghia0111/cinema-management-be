@@ -321,7 +321,7 @@ exports.getMovieBySlug = async (req, res, next) => {
       status: movieStatus.ACTIVE,
     })
       .populate("genres")
-      .populate("actors", "name avatar")
+      .populate("actors", "name avatar slug")
       .populate({
         path: "comments",
         populate: [
