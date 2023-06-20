@@ -110,7 +110,7 @@ exports.getDailyReport = async (req, res, next) => {
     data.movies = movies;
     const transactions = await Transaction.find({
       createdAt: { $lt: getNextDate(date) },
-    }).populate({ path: "items.id", select: "-image" });
+    }).populate({ path: "items.id" });
     const expectedTransactions = transactions.filter((tran) =>
       ticketIds.includes(tran.tickets[0].toString())
     );
@@ -121,6 +121,7 @@ exports.getDailyReport = async (req, res, next) => {
             name: item.id.name,
             quantity: item.quantity,
             totalPrice: item.id.price * item.quantity,
+            image: item.id.image
           };
         } else {
           items[item.id._id.toString()].quantity += item.quantity;
