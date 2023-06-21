@@ -2,6 +2,7 @@ const { validationResult } = require("express-validator");
 const Ticket = require("../models/ticket");
 const Item = require("../models/item");
 const Transaction = require("../models/transaction");
+const ShowTime = require("../models/show_time")
 const User = require("../models/user");
 
 const { getTransactions } = require("../utils/service");
@@ -29,6 +30,10 @@ exports.createTransaction = async (req, res, next) => {
     const bookedTicket = existingTickets.find(
       (ticket) => ticket.isBooked === true
     );
+    const differentTicket = existingTickets.find(
+      (ticket) =>
+        ticket.showTime.toString() !== existingTickets[0].showTime.toString()
+    );
     if (bookedTicket) {
       const err = new Error(
         `Vé ${bookedTicket.seat.name} đã được đặt, vui lòng chọn vé khác`
@@ -36,6 +41,12 @@ exports.createTransaction = async (req, res, next) => {
       err.statusCode = 422;
       return next(err);
     }
+    if (differentTicket) {
+      const err = new Error("Các vé phải cùng chung một lịch chiếu");
+      err.statusCode = 422;
+      return next(err);
+    }
+    const existingShowTime = await ShowTime.findById(existingTickets[0].showTime);
     let itemCount = 0;
     let itemPrice = 0;
     for (let item of items) {
@@ -61,6 +72,7 @@ exports.createTransaction = async (req, res, next) => {
       tickets,
       items,
       totalPrice,
+      date: existingShowTime.startTime
     });
     if (user.role === userRoles.CUSTOMER)
       transaction.customer = user._id.toString();

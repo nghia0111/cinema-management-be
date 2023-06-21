@@ -15,6 +15,12 @@ exports.getLocalDate = () => {
   return date;
 };
 
+exports.getLocalDate = (date) => {
+  const copy = new Date(date)
+  copy.setHours(copy.getHours() + 7);
+  return copy;
+};
+
 exports.getNextDate = (date = this.getLocalDate()) => {
   const copy = new Date(date);
   copy.setDate(copy.getDate() + 1);
@@ -55,6 +61,29 @@ exports.getTransactions = async (selector) => {
         thumbnail: existingTicket.showTime.movie.thumbnail,
       };
       _transactions.push(transaction);
+    }
+    return _transactions;
+  } catch (err) {
+    throw err;
+  }
+};
+
+exports.getTransactionsByDate = async (startDate, endDate) => {
+  try {
+    console.log(startDate);
+    console.log(endDate)
+    const transactions = await Transaction.find({
+      date: { $gte: startDate, $lt: endDate ? endDate : this.getNextDate(date) },
+    }).populate({
+      path: "tickets",
+      select: "price",
+    });
+    let _transactions = [];
+    for (let transaction of transactions) {
+      const ticketRevenue = transaction.tickets.reduce((accumulator, ticket) => accumulator + ticket.price, 0)
+      transaction = transaction.toJSON();
+      transaction.ticketRevenue = ticketRevenue;
+      _transactions.push(_transactions);
     }
     return _transactions;
   } catch (err) {

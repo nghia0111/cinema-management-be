@@ -29,6 +29,10 @@ const transactionSchema = new Schema(
         },
       },
     ],
+    date: {
+      type: Date,
+      require: true
+    },
     totalPrice: {
       type: Number,
       require: true,

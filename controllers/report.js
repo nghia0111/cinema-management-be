@@ -1,9 +1,15 @@
+const { validationResult } = require("express-validator");
 const Transaction = require("../models/transaction");
 const Ticket = require("../models/ticket");
 const ShowTime = require("../models/show_time");
 const Movie = require("../models/movie");
 
-const { getRole, getLocalDate, getNextDate } = require("../utils/service");
+const {
+  getRole,
+  getLocalDate,
+  getNextDate,
+  getTransactionsByDate,
+} = require("../utils/service");
 const { userRoles } = require("../constants");
 
 exports.getDashboardData = async (req, res, next) => {
@@ -71,6 +77,13 @@ exports.getDashboardData = async (req, res, next) => {
 };
 
 exports.getDailyReport = async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const error = new Error(errors.array()[0].msg);
+    error.statusCode = 422;
+    error.validationErrors = errors.array();
+    return next(error);
+  }
   try {
     const role = await getRole(req.accountId);
     if (role != userRoles.MANAGER && role != userRoles.OWNER) {
@@ -121,15 +134,71 @@ exports.getDailyReport = async (req, res, next) => {
             name: item.id.name,
             quantity: item.quantity,
             totalPrice: item.id.price * item.quantity,
-            image: item.id.image
+            image: item.id.image,
           };
         } else {
           items[item.id._id.toString()].quantity += item.quantity;
-          items[item.id._id.toString()].totalPrice += item.id.price * item.quantity;
+          items[item.id._id.toString()].totalPrice +=
+            item.id.price * item.quantity;
         }
       }
     }
     data.items = items;
+    res.status(200).json({ data });
+  } catch (err) {
+    const error = new Error(err.message);
+    error.statusCode = 500;
+    next(error);
+  }
+};
+
+exports.getMonthlyReport = async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const error = new Error(errors.array()[0].msg);
+    error.statusCode = 422;
+    error.validationErrors = errors.array();
+    return next(error);
+  }
+  try {
+    const role = await getRole(req.accountId);
+    if (role != userRoles.MANAGER && role != userRoles.OWNER) {
+      const error = new Error(
+        "Chỉ có quản lý hoặc chủ rạp mới được xem báo cáo"
+      );
+      error.statusCode = 401;
+      return next(error);
+    }
+    const { month, year } = req.body;
+    const startDate = new Date(year, month);
+    const endDate = new Date(year, month + 1, 0);
+    endDate.setHours(24, 0, 0, 0);
+    startDate.setHours(0, 0, 0, 0);
+    //get the first date of next month
+    const _endDate = getLocalDate(endDate);
+
+    const data = [];
+    for (
+      let currentDate = getLocalDate(startDate);
+      currentDate < _endDate;
+      currentDate.setDate(currentDate.getDate() + 1)
+    ) {
+      data.push({
+        date: new Date(currentDate),
+        ticketRevenue: 0,
+        itemRevenue: 0,
+        totalRevenue: 0,
+      });
+    }
+
+    const transactions = await getTransactionsByDate(getLocalDate(startDate), _endDate);
+    for(let transaction of transactions){
+      //get index of data from date in transaction
+      const index = transaction.date.getDate() - 1;
+      data[index].ticketRevenue += transaction.ticketRevenue;
+      data[index].totalRevenue += transaction.totalPrice;
+      data[index].itemRevenue += (transaction.totalPrice - transaction.ticketRevenue)
+    }
     res.status(200).json({ data });
   } catch (err) {
     const error = new Error(err.message);
