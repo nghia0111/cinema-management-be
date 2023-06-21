@@ -28,4 +28,13 @@ router.post(
   reportController.getMonthlyReport
 );
 
+router.post(
+  "/annual-report",
+  isAuth,
+  [
+    body("year", "Năm không hợp lệ").isInt({ min: 1970 }),
+  ],
+  reportController.getAnnualReport
+);
+
 module.exports = router;

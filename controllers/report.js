@@ -197,13 +197,74 @@ exports.getMonthlyReport = async (req, res, next) => {
       });
     }
 
-    const transactions = await getTransactionsByDate(getLocalDate(startDate), _endDate);
-    for(let transaction of transactions){
+    const transactions = await getTransactionsByDate(
+      getLocalDate(startDate),
+      _endDate
+    );
+    for (let transaction of transactions) {
       //get index of data from date in transaction
       const index = transaction.date.getDate() - 1;
       data[index].ticketRevenue += transaction.ticketRevenue;
       data[index].totalRevenue += transaction.totalPrice;
-      data[index].itemRevenue += (transaction.totalPrice - transaction.ticketRevenue)
+      data[index].itemRevenue +=
+        transaction.totalPrice - transaction.ticketRevenue;
+    }
+    report.data = data;
+    res.status(200).json({ report });
+  } catch (err) {
+    const error = new Error(err.message);
+    error.statusCode = 500;
+    next(error);
+  }
+};
+
+exports.getAnnualReport = async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const error = new Error(errors.array()[0].msg);
+    error.statusCode = 422;
+    error.validationErrors = errors.array();
+    return next(error);
+  }
+  try {
+    const role = await getRole(req.accountId);
+    if (role != userRoles.MANAGER && role != userRoles.OWNER) {
+      const error = new Error(
+        "Chỉ có quản lý hoặc chủ rạp mới được xem báo cáo"
+      );
+      error.statusCode = 401;
+      return next(error);
+    }
+    const { year } = req.body;
+    const startDate = new Date(year, 0, 1);
+    const endDate = new Date(year, 12, 0);
+    endDate.setHours(24, 0, 0, 0);
+    startDate.setHours(0, 0, 0, 0);
+    //get the first date of next year
+    const _endDate = getLocalDate(endDate);
+
+    const report = {};
+    report.year = year;
+    const data = [];
+    for (let month = 1; month <= 12; month++) {
+      data.push({
+        month: month,
+        ticketRevenue: 0,
+        itemRevenue: 0,
+        totalRevenue: 0,
+      });
+    }
+    const transactions = await getTransactionsByDate(
+      getLocalDate(startDate),
+      _endDate
+    );
+    for (let transaction of transactions) {
+      //get index of data from date in transaction
+      const index = transaction.date.getMonth();
+      data[index].ticketRevenue += transaction.ticketRevenue;
+      data[index].totalRevenue += transaction.totalPrice;
+      data[index].itemRevenue +=
+        transaction.totalPrice - transaction.ticketRevenue;
     }
     report.data = data;
     res.status(200).json({ report });
