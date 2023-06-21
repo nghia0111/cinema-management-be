@@ -95,7 +95,7 @@ exports.getDailyReport = async (req, res, next) => {
     }
     const { date } = req.body;
     const showTimes = await ShowTime.find({
-      startTime: { $gte: date, $lt: getNextDate(date) },
+      startTime: { $gte: getLocalDate(date), $lt: getNextDate(date) },
     }).populate("movie", "name thumbnail");
     const report = {};
     report.date = date;
@@ -268,6 +268,87 @@ exports.getAnnualReport = async (req, res, next) => {
     }
     report.data = data;
     res.status(200).json({ report });
+  } catch (err) {
+    const error = new Error(err.message);
+    error.statusCode = 500;
+    next(error);
+  }
+};
+
+exports.getMovieReportByDate = async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const error = new Error(errors.array()[0].msg);
+    error.statusCode = 422;
+    error.validationErrors = errors.array();
+    return next(error);
+  }
+  try {
+    const role = await getRole(req.accountId);
+    if (role != userRoles.MANAGER && role != userRoles.OWNER) {
+      const error = new Error(
+        "Chỉ có quản lý hoặc chủ rạp mới được xem báo cáo"
+      );
+      error.statusCode = 401;
+      return next(error);
+    }
+    const movieSlug = req.params.movieSlug;
+    const { date } = req.body;
+    const movie = await Movie.findOne({ slug: movieSlug });
+    if (!movie) {
+      const error = new Error("Phim không tồn tại");
+      error.statusCode = 406;
+      return next(error);
+    }
+    let data;
+    if (date) {
+      const _date = new Date(date);
+      if(!(_date instanceof Date) || isNaN(_date)){
+        const error = new Error("Ngày không hợp lệ");
+        error.statusCode = 400;
+        return next(error);
+      }
+      const show_times = await ShowTime.find({
+        movie: movie._id.toString(),
+        startTime: { $gte: getLocalDate(_date), $lt: getNextDate(getLocalDate(_date)) },
+      });
+      const showTimeIds = show_times.map((showTime) => showTime._id.toString());
+      const ticketQuantity = await Ticket.find({
+        showTime: { $in: showTimeIds },
+      }).countDocuments();
+      const soldTickets = await Ticket.find({
+        showTime: { $in: showTimeIds },
+        isBooked: true,
+      });
+      data = {};
+      data.soldTicketQuantity = soldTickets.length;
+      data.remainingTicketQuantity = ticketQuantity - soldTickets.length;
+      data.totalRevenue = soldTickets.reduce((accumulator, ticket) => accumulator + ticket.price, 0);
+    } else {
+      data = [];
+      const dates = [];
+      const show_times = await ShowTime.find({
+        movie: movie._id.toString(),
+      }).sort({startTime: 1});
+      for(let show_time of show_times){
+        if (!dates.includes(show_time.startTime.toLocaleDateString("en-GB"))) dates.push(show_time.startTime.toLocaleDateString("en-GB"));
+      }
+      for(let date of dates){
+        data.push({date, soldTicketQuantity: 0, remainingTicketQuantity: 0, totalRevenue: 0});
+      }
+      const showTimeIds = show_times.map((showTime) => showTime._id.toString());
+      const tickets = await Ticket.find({showTime: {$in: showTimeIds}}).populate("showTime", "startTime");
+      for(let ticket of tickets){
+        const index = data.findIndex(object => object.date === ticket.showTime.startTime.toLocaleDateString("en-GB"));
+        if(ticket.isBooked){
+          data[index].soldTicketQuantity += 1;
+          data[index].totalRevenue += ticket.price;
+        } else {
+          data[index].remainingTicketQuantity += 1;
+        }
+      }
+    }
+    res.status(200).json({ data });
   } catch (err) {
     const error = new Error(err.message);
     error.statusCode = 500;

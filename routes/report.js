@@ -37,4 +37,10 @@ router.post(
   reportController.getAnnualReport
 );
 
+router.post(
+  "/reports/:movieSlug",
+  isAuth,
+  reportController.getMovieReportByDate
+);
+
 module.exports = router;
