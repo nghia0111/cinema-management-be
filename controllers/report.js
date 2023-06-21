@@ -97,6 +97,8 @@ exports.getDailyReport = async (req, res, next) => {
     const showTimes = await ShowTime.find({
       startTime: { $gte: date, $lt: getNextDate(date) },
     }).populate("movie", "name thumbnail");
+    const report = {};
+    report.date = date;
     const data = {};
     const movies = {};
     const items = {};
@@ -144,7 +146,8 @@ exports.getDailyReport = async (req, res, next) => {
       }
     }
     data.items = items;
-    res.status(200).json({ data });
+    report.data = data;
+    res.status(200).json({ report });
   } catch (err) {
     const error = new Error(err.message);
     error.statusCode = 500;
@@ -177,6 +180,9 @@ exports.getMonthlyReport = async (req, res, next) => {
     //get the first date of next month
     const _endDate = getLocalDate(endDate);
 
+    const report = {};
+    report.month = month;
+    report.year = year;
     const data = [];
     for (
       let currentDate = getLocalDate(startDate);
@@ -199,7 +205,8 @@ exports.getMonthlyReport = async (req, res, next) => {
       data[index].totalRevenue += transaction.totalPrice;
       data[index].itemRevenue += (transaction.totalPrice - transaction.ticketRevenue)
     }
-    res.status(200).json({ data });
+    report.data = data;
+    res.status(200).json({ report });
   } catch (err) {
     const error = new Error(err.message);
     error.statusCode = 500;
