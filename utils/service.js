@@ -70,8 +70,6 @@ exports.getTransactions = async (selector) => {
 
 exports.getTransactionsByDate = async (startDate, endDate) => {
   try {
-    console.log(startDate);
-    console.log(endDate)
     const transactions = await Transaction.find({
       date: { $gte: startDate, $lt: endDate ? endDate : this.getNextDate(date) },
     }).populate({
@@ -83,7 +81,7 @@ exports.getTransactionsByDate = async (startDate, endDate) => {
       const ticketRevenue = transaction.tickets.reduce((accumulator, ticket) => accumulator + ticket.price, 0)
       transaction = transaction.toJSON();
       transaction.ticketRevenue = ticketRevenue;
-      _transactions.push(_transactions);
+      _transactions.push(transaction);
     }
     return _transactions;
   } catch (err) {
