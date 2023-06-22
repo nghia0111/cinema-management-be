@@ -9,11 +9,28 @@ exports.getRole = async (accountId) => {
   }
 };
 
+// adjust datetime to correct timezone
 exports.getLocalDate = (date) => {
   let copy;
   if(date) copy = new Date(date);
   else copy = new Date();
   copy.setHours(copy.getHours() + 7);
+  return copy;
+};
+
+// adjust datetime to correct timezone and set hour to 0
+exports.getStartOfDate = (date) => {
+  let copy;
+  if (date) copy = new Date(date);
+  else copy = new Date();
+  copy.setHours(copy.getHours() + 7);
+  if (copy.getHours() >= 7) {
+    copy.setHours(0, 0, 0, 0);
+    copy.setHours(copy.getHours() + 7);
+  } else {
+    copy.setHours(0, 0, 0, 0);
+    copy.setHours(copy.getHours() - 17);
+  }
   return copy;
 };
 
@@ -67,7 +84,7 @@ exports.getTransactions = async (selector) => {
 exports.getTransactionsByDate = async (startDate, endDate) => {
   try {
     const transactions = await Transaction.find({
-      date: { $gte: startDate, $lt: endDate ? endDate : this.getNextDate(date) },
+      date: { $gte: startDate, $lt: endDate ? endDate : this.getNextDate(startDate) },
     }).populate({
       path: "tickets",
       select: "price",

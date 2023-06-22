@@ -7,6 +7,7 @@ const Movie = require("../models/movie");
 const {
   getRole,
   getLocalDate,
+  getStartOfDate,
   getNextDate,
   getTransactionsByDate,
 } = require("../utils/service");
@@ -44,7 +45,7 @@ exports.getDashboardData = async (req, res, next) => {
     const movies = await Movie.find({
       endDay: { $gt: getLocalDate() },
       premiereDay: { $lte: getLocalDate() },
-      status: movieStatus.ACTIVE
+      status: movieStatus.ACTIVE,
     }).countDocuments();
     data.onGoingMovies = movies;
     const recentTransactions = await Transaction.find()
@@ -95,42 +96,45 @@ exports.getDailyReport = async (req, res, next) => {
       return next(error);
     }
     const { date } = req.body;
-    const showTimes = await ShowTime.find({
-      startTime: { $gte: getLocalDate(date), $lt: getNextDate(date) },
-    }).populate("movie", "name thumbnail");
     const report = {};
-    report.date = date;
+    report.date = getStartOfDate(date);
     const data = {};
     const movies = {};
     const items = {};
-    const showTimeIds = [];
-    const ticketIds = [];
-    for (let showTime of showTimes) {
-      showTimeIds.push(showTime._id.toString());
-      movies[showTime.movie._id] = {
-        name: showTime.movie.name,
-        thumbnail: showTime.movie.thumbnail,
-        soldTicketQuantity: 0,
-        ticketRevenue: 0,
-      };
+    let ticketIds = [];
+
+    const transactions = await Transaction.find({
+      date: {
+        $gte: getStartOfDate(date),
+        $lt: getNextDate(getStartOfDate(date)),
+      },
+    }).populate({ path: "items.id" });;
+    for (let transaction of transactions) {
+      ticketIds = [...ticketIds, ...transaction.tickets];
     }
     const soldTickets = await Ticket.find({
-      showTime: { $in: showTimeIds },
-      isBooked: true,
-    }).populate("showTime", "movie");
+      _id: { $in: ticketIds },
+    }).populate({
+      path: "showTime",
+      select: "movie",
+      populate: { path: "movie", select: "name thumbnail" },
+    });
     for (let ticket of soldTickets) {
-      ticketIds.push(ticket._id.toString());
-      movies[ticket.showTime.movie].soldTicketQuantity += 1;
-      movies[ticket.showTime.movie].ticketRevenue += ticket.price;
+      if (!movies.hasOwnProperty(ticket.showTime.movie._id.toString())) {
+        movies[ticket.showTime.movie._id.toString()] = {
+          name: ticket.showTime.movie.name,
+          thumbnail: ticket.showTime.movie.thumbnail,
+          soldTicketQuantity: 0,
+          ticketRevenue: 0,
+        };
+      } else {
+        movies[ticket.showTime.movie._id.toString()].soldTicketQuantity += 1;
+        movies[ticket.showTime.movie._id.toString()].ticketRevenue +=
+          ticket.price;
+      }
     }
     data.movies = movies;
-    const transactions = await Transaction.find({
-      createdAt: { $lt: getNextDate(date) },
-    }).populate({ path: "items.id" });
-    const expectedTransactions = transactions.filter((tran) =>
-      ticketIds.includes(tran.tickets[0].toString())
-    );
-    for (let transaction of expectedTransactions) {
+    for (let transaction of transactions) {
       for (let item of transaction.items) {
         if (!items.hasOwnProperty(item.id._id.toString())) {
           items[item.id._id.toString()] = {
@@ -301,17 +305,22 @@ exports.getMovieReportByDate = async (req, res, next) => {
       error.statusCode = 406;
       return next(error);
     }
+    const report = {};
+    report.movie = movie.name;
     let data;
     if (date) {
       const _date = new Date(date);
-      if(!(_date instanceof Date) || isNaN(_date)){
+      if (!(_date instanceof Date) || isNaN(_date)) {
         const error = new Error("Ngày không hợp lệ");
         error.statusCode = 400;
         return next(error);
       }
       const show_times = await ShowTime.find({
         movie: movie._id.toString(),
-        startTime: { $gte: getLocalDate(_date), $lt: getNextDate(getLocalDate(_date)) },
+        startTime: {
+          $gte: getLocalDate(_date),
+          $lt: getNextDate(getLocalDate(_date)),
+        },
       });
       const showTimeIds = show_times.map((showTime) => showTime._id.toString());
       const ticketQuantity = await Ticket.find({
@@ -324,24 +333,39 @@ exports.getMovieReportByDate = async (req, res, next) => {
       data = {};
       data.soldTicketQuantity = soldTickets.length;
       data.remainingTicketQuantity = ticketQuantity - soldTickets.length;
-      data.totalRevenue = soldTickets.reduce((accumulator, ticket) => accumulator + ticket.price, 0);
+      data.totalRevenue = soldTickets.reduce(
+        (accumulator, ticket) => accumulator + ticket.price,
+        0
+      );
     } else {
       data = [];
       const dates = [];
       const show_times = await ShowTime.find({
         movie: movie._id.toString(),
-      }).sort({startTime: 1});
-      for(let show_time of show_times){
-        if (!dates.includes(show_time.startTime.toLocaleDateString("en-GB"))) dates.push(show_time.startTime.toLocaleDateString("en-GB"));
+      }).sort({ startTime: 1 });
+      for (let show_time of show_times) {
+        if (!dates.includes(show_time.startTime.toLocaleDateString("en-GB")))
+          dates.push(show_time.startTime.toLocaleDateString("en-GB"));
       }
-      for(let date of dates){
-        data.push({date, soldTicketQuantity: 0, remainingTicketQuantity: 0, totalRevenue: 0});
+      for (let date of dates) {
+        data.push({
+          date,
+          soldTicketQuantity: 0,
+          remainingTicketQuantity: 0,
+          totalRevenue: 0,
+        });
       }
       const showTimeIds = show_times.map((showTime) => showTime._id.toString());
-      const tickets = await Ticket.find({showTime: {$in: showTimeIds}}).populate("showTime", "startTime");
-      for(let ticket of tickets){
-        const index = data.findIndex(object => object.date === ticket.showTime.startTime.toLocaleDateString("en-GB"));
-        if(ticket.isBooked){
+      const tickets = await Ticket.find({
+        showTime: { $in: showTimeIds },
+      }).populate("showTime", "startTime");
+      for (let ticket of tickets) {
+        const index = data.findIndex(
+          (object) =>
+            object.date ===
+            ticket.showTime.startTime.toLocaleDateString("en-GB")
+        );
+        if (ticket.isBooked) {
           data[index].soldTicketQuantity += 1;
           data[index].totalRevenue += ticket.price;
         } else {
@@ -349,7 +373,8 @@ exports.getMovieReportByDate = async (req, res, next) => {
         }
       }
     }
-    res.status(200).json({ data });
+    report.data = data;
+    res.status(200).json({ report });
   } catch (err) {
     const error = new Error(err.message);
     error.statusCode = 500;
