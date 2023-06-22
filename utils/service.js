@@ -9,14 +9,10 @@ exports.getRole = async (accountId) => {
   }
 };
 
-exports.getLocalDate = () => {
-  const date = new Date();
-  date.setHours(date.getHours() + 7);
-  return date;
-};
-
 exports.getLocalDate = (date) => {
-  const copy = new Date(date)
+  let copy;
+  if(date) copy = new Date(date);
+  else copy = new Date();
   copy.setHours(copy.getHours() + 7);
   return copy;
 };

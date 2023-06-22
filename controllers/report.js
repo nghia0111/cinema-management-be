@@ -10,7 +10,7 @@ const {
   getNextDate,
   getTransactionsByDate,
 } = require("../utils/service");
-const { userRoles } = require("../constants");
+const { userRoles, movieStatus } = require("../constants");
 
 exports.getDashboardData = async (req, res, next) => {
   try {
@@ -44,6 +44,7 @@ exports.getDashboardData = async (req, res, next) => {
     const movies = await Movie.find({
       endDay: { $gt: getLocalDate() },
       premiereDay: { $lte: getLocalDate() },
+      status: movieStatus.ACTIVE
     }).countDocuments();
     data.onGoingMovies = movies;
     const recentTransactions = await Transaction.find()
