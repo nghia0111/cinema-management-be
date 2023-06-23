@@ -322,8 +322,8 @@ exports.getMovieReportByDate = async (req, res, next) => {
       const show_times = await ShowTime.find({
         movie: movie._id.toString(),
         startTime: {
-          $gte: getLocalDate(_date),
-          $lt: getNextDate(getLocalDate(_date)),
+          $gte: getStartOfDate(_date),
+          $lt: getNextDate(getStartOfDate(_date)),
         },
       });
       const showTimeIds = show_times.map((showTime) => showTime._id.toString());
@@ -348,8 +348,10 @@ exports.getMovieReportByDate = async (req, res, next) => {
         movie: movie._id.toString(),
       }).sort({ startTime: 1 });
       for (let show_time of show_times) {
-        if (!dates.includes(show_time.startTime.toLocaleDateString("en-GB")))
-          dates.push(show_time.startTime.toLocaleDateString("en-GB"));
+        const date = new Date(show_time.startTime);
+        if(date.getHours() < 7) date.setDate(date.getDate() - 1);
+        if (!dates.includes(date.toLocaleDateString("en-GB")))
+          dates.push(date.toLocaleDateString("en-GB"));
       }
       for (let date of dates) {
         data.push({
@@ -364,10 +366,12 @@ exports.getMovieReportByDate = async (req, res, next) => {
         showTime: { $in: showTimeIds },
       }).populate("showTime", "startTime");
       for (let ticket of tickets) {
+        const date = new Date(ticket.showTime.startTime);
+        if (date.getHours() < 7) date.setDate(date.getDate() - 1);
         const index = data.findIndex(
           (object) =>
             object.date ===
-            ticket.showTime.startTime.toLocaleDateString("en-GB")
+            date.toLocaleDateString("en-GB")
         );
         if (ticket.isBooked) {
           data[index].soldTicketQuantity += 1;
