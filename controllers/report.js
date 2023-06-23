@@ -124,8 +124,8 @@ exports.getDailyReport = async (req, res, next) => {
         movies[ticket.showTime.movie._id.toString()] = {
           name: ticket.showTime.movie.name,
           thumbnail: ticket.showTime.movie.thumbnail,
-          soldTicketQuantity: 0,
-          ticketRevenue: 0,
+          soldTicketQuantity: 1,
+          ticketRevenue: ticket.price,
         };
       } else {
         movies[ticket.showTime.movie._id.toString()].soldTicketQuantity += 1;
@@ -182,6 +182,7 @@ exports.getMonthlyReport = async (req, res, next) => {
     const endDate = new Date(year, month + 1, 0);
     endDate.setHours(24, 0, 0, 0);
     startDate.setHours(0, 0, 0, 0);
+    
     //get the first date of next month
     const _endDate = getLocalDate(endDate);
 
@@ -201,14 +202,17 @@ exports.getMonthlyReport = async (req, res, next) => {
         totalRevenue: 0,
       });
     }
-
     const transactions = await getTransactionsByDate(
       getLocalDate(startDate),
       _endDate
     );
+    console.log(transactions)
     for (let transaction of transactions) {
       //get index of data from date in transaction
-      const index = transaction.date.getDate() - 1;
+      //the date with auto plus 1 if hour is between 17 and 24, getHour return (hour - 17)
+      let index;
+      if(transaction.date.getHours() < 7) index = transaction.date.getDate() - 2;
+      else index = transaction.date.getDate() - 1;
       data[index].ticketRevenue += transaction.ticketRevenue;
       data[index].totalRevenue += transaction.totalPrice;
       data[index].itemRevenue +=
