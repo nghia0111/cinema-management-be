@@ -162,10 +162,18 @@ exports.updateUser = async (req, res, next) => {
   const { role, name, email, phone, address, gender, birthday } = req.body;
 
   try {
+    const user = await User.findById(userId);
+    if (!user) {
+      const error = new Error("Nhân viên không tồn tại.");
+      error.statusCode = 404;
+      return next(error);
+    }
+    const currentUser = await User.findOne({account: req.accountId});
     const currentUserRole = await getRole(req.accountId);
     if (
-      currentUserRole !== userRoles.MANAGER &&
-      currentUserRole !== userRoles.OWNER
+      currentUser._id.toString() !== user._id.toString() &&
+      (currentUserRole !== userRoles.MANAGER &&
+      currentUserRole !== userRoles.OWNER)
     ) {
       const error = new Error(
         "Chỉ có quản lý hoặc chủ quán mới được chỉnh sửa nhân viên"
@@ -174,12 +182,7 @@ exports.updateUser = async (req, res, next) => {
       return next(error);
     }
 
-    const user = await User.findById(userId);
-    if (!user) {
-      const error = new Error("Nhân viên không tồn tại.");
-      error.statusCode = 404;
-      return next(error);
-    }
+    
 
     if (
       user.role === userRoles.MANAGER &&
