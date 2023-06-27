@@ -49,7 +49,7 @@ exports.getNextDate = (date = this.getLocalDate()) => {
 
 exports.getTransactions = async (selector) => {
   try {
-    const transactions = await Transaction.find(selector)
+    const transactions = await Transaction.find(selector).sort({createdAt: -1})
       .populate("staff", "name")
       .populate("customer", "name")
       .populate({
