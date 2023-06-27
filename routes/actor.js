@@ -10,6 +10,7 @@ const actorValidation = [
   body("birthday", "Ngày sinh không hợp lệ").isISO8601().toDate(),
   body("nation", "Vui lòng cung cấp quốc tịch").trim().notEmpty(),
   body("story", "Vui lòng cung cấp mô tả chi tiết").trim().notEmpty(),
+  body("avatar", "Vui lòng cung cấp ảnh đại diện").trim().notEmpty(),
 ];
 
 router.get("/actors", actorController.getActors);

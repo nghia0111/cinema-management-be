@@ -82,8 +82,8 @@ exports.getUsers = async (req, res, next) => {
   try {
     const currentUserRole = await getRole(req.accountId);
     if (
-      currentUserRole != userRoles.MANAGER &&
-      currentUserRole != userRoles.OWNER
+      currentUserRole !== userRoles.MANAGER &&
+      currentUserRole !== userRoles.OWNER
     ) {
       const error = new Error(
         "Chỉ có quản lý hoặc chủ rạp mới được xem danh sách nhân viên"
@@ -91,10 +91,18 @@ exports.getUsers = async (req, res, next) => {
       error.statusCode = 401;
       return next(error);
     }
-    const users = await User.find({
-      role: { $in: [userRoles.STAFF, userRoles.MANAGER] },
-      status: userStatus.ACTIVE,
-    }).populate("account");
+    let users;
+    if (currentUserRole === userRoles.MANAGER) {
+      users = await User.find({
+        role: userRoles.STAFF,
+        status: userStatus.ACTIVE,
+      }).populate("account");
+    } else {
+      users = await User.find({
+        role: { $in: [userRoles.STAFF, userRoles.MANAGER] },
+        status: userStatus.ACTIVE,
+      }).populate("account");
+    }
     res.status(200).json({ users });
   } catch (err) {
     const error = new Error(err.message);
@@ -168,12 +176,12 @@ exports.updateUser = async (req, res, next) => {
       error.statusCode = 404;
       return next(error);
     }
-    const currentUser = await User.findOne({account: req.accountId});
+    const currentUser = await User.findOne({ account: req.accountId });
     const currentUserRole = await getRole(req.accountId);
     if (
       currentUser._id.toString() !== user._id.toString() &&
-      (currentUserRole !== userRoles.MANAGER &&
-      currentUserRole !== userRoles.OWNER)
+      currentUserRole !== userRoles.MANAGER &&
+      currentUserRole !== userRoles.OWNER
     ) {
       const error = new Error(
         "Chỉ có quản lý hoặc chủ quán mới được chỉnh sửa nhân viên"
@@ -181,8 +189,6 @@ exports.updateUser = async (req, res, next) => {
       error.statusCode = 401;
       return next(error);
     }
-
-    
 
     if (
       user.role === userRoles.MANAGER &&
