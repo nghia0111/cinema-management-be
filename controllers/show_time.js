@@ -5,7 +5,7 @@ const ShowTime = require("../models/show_time");
 const Movie = require("../models/movie");
 const Ticket = require("../models/ticket");
 
-const { getRole, getLocalDate, getNextDate } = require("../utils/service");
+const { getRole, getLocalDate, getNextDate, getStartOfDate } = require("../utils/service");
 const { userRoles, seatTypes } = require("../constants");
 
 exports.createShowTime = async (req, res, next) => {
@@ -45,7 +45,7 @@ exports.createShowTime = async (req, res, next) => {
       err.statusCode = 406;
       return next(err);
     }
-    if (startTime < getLocalDate()) {
+    if (getLocalDate(startTime) < getLocalDate()) {
       const err = new Error("Lịch chiếu không hợp lệ");
       err.statusCode = 422;
       return next(err);
@@ -55,8 +55,8 @@ exports.createShowTime = async (req, res, next) => {
     endTime.setMinutes(endTime.getMinutes() + movie.duration);
 
     const conflictShowTime = await ShowTime.findOne({
-      startTime: { $lt: endTime },
-      endTime: { $gt: startTime },
+      startTime: { $lt: getLocalDate(endTime) },
+      endTime: { $gt: getLocalDate(startTime) },
       room: roomId,
     });
     if (conflictShowTime) {
@@ -66,7 +66,7 @@ exports.createShowTime = async (req, res, next) => {
     }
 
     const show_time = new ShowTime({
-      startTime,
+      startTime: getLocalDate(startTime),
       room: roomId,
       movie: movieId,
       duration: movie.duration,
@@ -106,10 +106,8 @@ exports.createShowTime = async (req, res, next) => {
     show_time.tickets = tickets;
     await show_time.save();
 
-    const date = getNextDate();
-    date.setDate(date.getDate() - 1);
     const showTimes = await ShowTime.find({
-      startTime: { $gte: date, $lt: getNextDate() },
+      startTime: { $gte: getStartOfDate(), $lt: getNextDate() },
     })
       .select("-tickets")
       .populate("room", "name")
@@ -163,7 +161,7 @@ exports.updateShowTime = async (req, res, next) => {
       return next(err);
     }
 
-    if (startTime < getLocalDate()) {
+    if (getLocalDate(startTime) < getLocalDate()) {
       const err = new Error("Lịch chiếu không hợp lệ");
       err.statusCode = 422;
       return next(err);
@@ -174,8 +172,8 @@ exports.updateShowTime = async (req, res, next) => {
 
     const conflictShowTime = await ShowTime.findOne({
       room: roomId,
-      startTime: { $lt: endTime },
-      endTime: { $gt: startTime },
+      startTime: { $lt: getLocalDate(endTime) },
+      endTime: { $gt: getLocalDate(startTime) },
       _id: { $ne: showTimeId },
     });
     if (conflictShowTime) {

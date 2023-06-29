@@ -50,7 +50,7 @@ exports.createMovie = async (req, res, next) => {
       return next(err);
     }
 
-    if (getLocalDate() >= endDay) {
+    if (getLocalDate() >= getLocalDate(endDay)) {
       const err = new Error("Ngày kết thúc phải lớn hơn hiện tại");
       err.statusCode = 422;
       return next(err);
@@ -65,8 +65,8 @@ exports.createMovie = async (req, res, next) => {
       thumbnail,
       images,
       duration,
-      premiereDay,
-      endDay,
+      premiereDay: getLocalDate(premiereDay),
+      endDay: getLocalDate(endDay),
       language,
       trailer,
     });
@@ -143,12 +143,13 @@ exports.updateMovie = async (req, res, next) => {
 
     const existingShowTime = await ShowTime.findOne({ movie: movieId });
     const upcomingShowTime = await ShowTime.findOne({
-      startTime: { $gt: Date.now() },
+      startTime: { $gt: getLocalDate() },
       movie: movieId,
     });
 
     if (
-      premiereDay.getTime() != currentMovie.premiereDay.getTime() &&
+      getLocalDate(premiereDay).getTime() !=
+        currentMovie.premiereDay.getTime() &&
       existingShowTime
     ) {
       const err = new Error(
@@ -157,7 +158,10 @@ exports.updateMovie = async (req, res, next) => {
       err.statusCode = 422;
       return next(err);
     }
-    if (endDay.getTime() != currentMovie.endDay.getTime() && upcomingShowTime) {
+    if (
+      getLocalDate(endDay).getTime() != currentMovie.endDay.getTime() &&
+      upcomingShowTime
+    ) {
       const err = new Error(
         "Không thể chỉnh sửa ngày kết thúc do phim đã có lịch chiếu"
       );
@@ -191,8 +195,8 @@ exports.updateMovie = async (req, res, next) => {
     currentMovie.thumbnail = thumbnail;
     currentMovie.images = images;
     currentMovie.duration = duration;
-    currentMovie.premiereDay = premiereDay;
-    currentMovie.endDay = endDay;
+    currentMovie.premiereDay = getLocalDate(premiereDay);
+    currentMovie.endDay = getLocalDate(endDay);
     currentMovie.language = language;
     currentMovie.trailer = trailer;
     await currentMovie.save();

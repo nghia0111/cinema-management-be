@@ -36,7 +36,7 @@ exports.getDashboardData = async (req, res, next) => {
       0
     );
     const show_times = await ShowTime.find({
-      startTime: { $gte: currentDate, $lt: nextDate },
+      startTime: { $gte: getLocalDate(currentDate), $lt: getNextDate(getLocalDate(currentDate)) },
     });
     const showTimeIds = show_times.map((st) => st._id);
     const tickets = await Ticket.find({ showTime: { $in: showTimeIds } });
@@ -206,7 +206,6 @@ exports.getMonthlyReport = async (req, res, next) => {
       getLocalDate(startDate),
       _endDate
     );
-    console.log(transactions)
     for (let transaction of transactions) {
       //get index of data from date in transaction
       //the date with auto plus 1 if hour is between 17 and 24, getHour return (hour - 17)
