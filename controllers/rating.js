@@ -18,7 +18,7 @@ exports.createRating = async (req, res, next) => {
   try {
     const reviewer = await User.findOne({ account: req.accountId });
     const existingTransaction = await getTransactionById(transactionId);
-    if (existingTransaction.customer.toString() !== reviewer._id.toString()) {
+    if (existingTransaction.customer?.toString() !== reviewer._id.toString()) {
       const err = new Error("Giao dịch không hợp lệ");
       err.statusCode = 406;
       return next(err);
