@@ -73,6 +73,10 @@ const movieSchemma = new Schema({
       ref: "Rating",
     },
   ],
+  totalScore: {
+    type: Number,
+    default: 0
+  },
   comments: [
     {
       type: Schema.Types.ObjectId,

@@ -43,6 +43,7 @@ exports.createRating = async (req, res, next) => {
     });
     await _rating.save();
     _movie.reviews.push(_rating._id);
+    _movie.totalScore += score;
     await _movie.save();
     await _movie.populate({
       path: "reviews",
@@ -93,6 +94,9 @@ exports.updateRating = async (req, res, next) => {
       return next(err);
     }
 
+    _movie.totalScore = _movie.totalScore - currentRating.score + score;
+    await _movie.save();
+
     currentRating.score = score;
     currentRating.description = description;
     await currentRating.save();
@@ -138,6 +142,7 @@ exports.deleteRating = async (req, res, next) => {
       return next(error);
     }
     _movie.reviews.pull(ratingId);
+    _movie.totalScore -= currentRating.score;
     await _movie.save();
     await _movie.populate({
       path: "reviews",
