@@ -19,7 +19,7 @@ router.post(
 
 router.get("/transactions", isAuth, transactionController.getTransactions);
 
-// router.get("/rooms/:roomId", isAuth, roomController.getRoomById);
+router.get("/transactions/:transactionId", isAuth, transactionController.getTransactionById);
 
 // router.get("/roomsByType", isAuth, roomController.getRoomsByTypeId);
 
