@@ -104,7 +104,7 @@ exports.getTransactionsByDate = async (startDate, endDate) => {
 
 exports.getTransactionById = async (transactionId) => {
   try {
-    const transaction = await Transaction.findById(transactionId)
+    let transaction = await Transaction.findById(transactionId)
       .populate("staff", "name")
       .populate("customer", "name")
       .populate("review")
