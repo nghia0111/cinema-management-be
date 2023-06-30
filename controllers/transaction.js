@@ -5,7 +5,7 @@ const Transaction = require("../models/transaction");
 const ShowTime = require("../models/show_time")
 const User = require("../models/user");
 
-const { getTransactions } = require("../utils/service");
+const { getTransactions, getTransactionById } = require("../utils/service");
 const { userRoles } = require("../constants");
 
 exports.createTransaction = async (req, res, next) => {
@@ -99,6 +99,18 @@ exports.getTransactions = async (req, res, next) => {
       user.role === userRoles.CUSTOMER ? { customer: user._id.toString() } : {};
     const _transactions = await getTransactions(selector);
     res.status(200).json({ _transactions });
+  } catch (err) {
+    const error = new Error(err.message);
+    error.statusCode = 500;
+    next(error);
+  }
+};
+
+exports.getTransactionById = async (req, res, next) => {
+  const transactionId = req.params.transactionId;
+  try {
+    const transaction = await getTransactionById(transactionId);
+    res.status(200).json({ transaction });
   } catch (err) {
     const error = new Error(err.message);
     error.statusCode = 500;

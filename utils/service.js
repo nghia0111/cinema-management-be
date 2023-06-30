@@ -101,3 +101,39 @@ exports.getTransactionsByDate = async (startDate, endDate) => {
     throw err;
   }
 };
+
+exports.getTransactionById = async (transactionId) => {
+  try {
+    const transaction = await Transaction.findById(transactionId)
+      .populate("staff", "name")
+      .populate("customer", "name")
+      .populate("review")
+      .populate({
+        path: "tickets",
+        select: "seat price",
+        populate: { path: "seat", select: "name" },
+      })
+      .populate({ path: "items.id", select: "-image" });
+    if (!transaction) {
+      const err = new Error("Không tìm thấy giao dịch");
+      err.statusCode = 406;
+      return next(err);
+    }
+    const ticketId = transaction.tickets[0]._id;
+    const existingTicket = await Ticket.findById(ticketId).populate({
+      path: "showTime",
+      select: "startTime movie",
+      populate: { path: "movie", select: "name thumbnail" },
+    });
+    transaction = transaction.toJSON();
+    transaction.showTime = {
+      startTime: existingTicket.showTime.startTime,
+      movieId: existingTicket.showTime.movie._id.toString(),
+      movieName: existingTicket.showTime.movie.name,
+      thumbnail: existingTicket.showTime.movie.thumbnail,
+    };
+    return transaction;
+  } catch (err) {
+    throw err;
+  }
+};

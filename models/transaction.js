@@ -37,6 +37,10 @@ const transactionSchema = new Schema(
       type: Number,
       require: true,
     },
+    review: {
+      type: Schema.Types.ObjectId,
+      ref: "Rating"
+    }
   },
   { timestamps: true }
 );
