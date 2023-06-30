@@ -2,7 +2,8 @@ const { validationResult } = require("express-validator");
 const User = require("../models/user");
 const Movie = require("../models/movie");
 const Rating = require("../models/rating");
-const { getTransactions } = require("../utils/service");
+const Transaction = require("../models/transaction");
+const { getTransactionById } = require("../utils/service");
 
 exports.createRating = async (req, res, next) => {
   const errors = validationResult(req);
@@ -13,27 +14,19 @@ exports.createRating = async (req, res, next) => {
     return next(error);
   }
 
-  const { score, movie, description } = req.body;
+  const { score, transactionId, description } = req.body;
   try {
     const reviewer = await User.findOne({ account: req.accountId });
-    const _movie = await Movie.findById(movie);
-    if (!_movie) {
-      const err = new Error("Không tìm thấy phim");
+    const existingTransaction = await getTransactionById(transactionId);
+    if (existingTransaction.customer.toString() !== reviewer._id.toString()) {
+      const err = new Error("Giao dịch không hợp lệ");
       err.statusCode = 406;
       return next(err);
     }
-
-    const transactions = await getTransactions({
-      customer: reviewer._id.toString(),
-    });
-    const transactionIndex = transactions.findIndex(
-      (transaction) => transaction.showTime.movieId === movie
-    );
-    if (transactionIndex < 0) {
-      const err = new Error(
-        "Chức năng đánh giá phim chỉ dành cho khách hàng đã đặt vé"
-      );
-      err.statusCode = 422;
+    const _movie = await Movie.findById(existingTransaction.showTime.movieId);
+    if (!_movie) {
+      const err = new Error("Không tìm thấy phim");
+      err.statusCode = 406;
       return next(err);
     }
     const _rating = new Rating({
@@ -42,17 +35,17 @@ exports.createRating = async (req, res, next) => {
       description,
     });
     await _rating.save();
+    const _transaction = await Transaction.findById(transactionId);
+    _transaction.review = _rating._id.toString();
+    await _transaction.save();
+    const transaction = await getTransactionById(transactionId);
     _movie.reviews.push(_rating._id);
     _movie.totalScore += score;
     await _movie.save();
-    await _movie.populate({
-      path: "reviews",
-      populate: { path: "reviewer", select: "name avatar" },
-    });
 
     res.status(201).json({
       message: "Thêm đánh giá thành công",
-      reviews: _movie.reviews,
+      transaction: transaction,
     });
   } catch (err) {
     const error = new Error(err.message);
@@ -72,11 +65,11 @@ exports.updateRating = async (req, res, next) => {
 
   const ratingId = req.params.ratingId;
 
-  const { score, movie, description } = req.body;
+  const { score, description } = req.body;
   try {
-    const _movie = await Movie.findById(movie);
-    if (!_movie) {
-      const err = new Error("Không tìm thấy phim");
+    const _transaction = await Transaction.findOne({review: ratingId});
+    if (!_transaction) {
+      const err = new Error("Không tìm thấy giao dịch");
       err.statusCode = 406;
       return next(err);
     }
@@ -101,14 +94,11 @@ exports.updateRating = async (req, res, next) => {
     currentRating.description = description;
     await currentRating.save();
 
-    await _movie.populate({
-      path: "reviews",
-      populate: { path: "reviewer", select: "name avatar" },
-    });
+    const transaction = await getTransactionById(_transaction._id);
 
     res.status(200).json({
       message: "Chỉnh sửa đánh giá thành công",
-      reviews: _movie.reviews,
+      transaction: transaction,
     });
   } catch (err) {
     const error = new Error(err.message);
@@ -121,6 +111,12 @@ exports.deleteRating = async (req, res, next) => {
   const ratingId = req.params.ratingId;
   const { movie } = req.body;
   try {
+    const _transaction = await Transaction.findOne({ review: ratingId });
+    if (!_transaction) {
+      const err = new Error("Không tìm thấy giao dịch");
+      err.statusCode = 406;
+      return next(err);
+    }
     const _movie = await Movie.findById(movie);
     if (!_movie) {
       const err = new Error("Không tìm thấy phim");
@@ -144,13 +140,13 @@ exports.deleteRating = async (req, res, next) => {
     _movie.reviews.pull(ratingId);
     _movie.totalScore -= currentRating.score;
     await _movie.save();
-    await _movie.populate({
-      path: "reviews",
-      populate: { path: "reviewer", select: "name avatar" },
-    });
+    _transaction.review = undefined;
+    await _transaction.save();
+    const transaction = await getTransactionById(_transaction._id)
+
     res
       .status(200)
-      .json({ message: "Xoá đánh giá thành công", reviews: _movie.reviews });
+      .json({ message: "Xoá đánh giá thành công", transaction: transaction });
   } catch (err) {
     const error = new Error(err.message);
     error.statusCode = 500;
