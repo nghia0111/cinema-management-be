@@ -327,6 +327,13 @@ exports.getMovieBySlug = async (req, res, next) => {
       .populate("genres")
       .populate("actors", "name avatar slug")
       .populate({
+        path: "reviews",
+        populate: {
+          path: "reviewer",
+          select: "name avatar"
+        }
+      })
+      .populate({
         path: "comments",
         populate: [
           { path: "author", select: "name avatar" },
