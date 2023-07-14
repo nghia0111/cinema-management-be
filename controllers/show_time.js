@@ -88,7 +88,7 @@ exports.createShowTime = async (req, res, next) => {
               });
               await ticket.save();
               return { ticketId: ticket._id.toString() };
-            } else if (currentSeat.type === seatTypes.DOUBLE) {
+            } else if (currentSeat.type === seatTypes.DOUBLE && currentSeat.position === "left") {
               const ticket = new Ticket({
                 showTime: show_time._id.toString(),
                 seat: seat.seatId,
@@ -211,7 +211,7 @@ exports.updateShowTime = async (req, res, next) => {
                 });
                 await ticket.save();
                 return { ticketId: ticket._id.toString() };
-              } else if (currentSeat.type === seatTypes.DOUBLE) {
+              } else if (currentSeat.type === seatTypes.DOUBLE && currentSeat.position === "left") {
                 const ticket = new Ticket({
                   showTime: show_time._id.toString(),
                   seat: seat.seatId,
@@ -240,6 +240,7 @@ exports.updateShowTime = async (req, res, next) => {
       const doubleSeat = await Seat.findOne({
         room: roomId.toString(),
         type: seatTypes.DOUBLE,
+        position: "left"
       });
       const doubleTicket = await Ticket.findOne({
         showTime: showTimeId,
