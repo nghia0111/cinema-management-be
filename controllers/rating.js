@@ -18,7 +18,7 @@ exports.createRating = async (req, res, next) => {
   try {
     const reviewer = await User.findOne({ account: req.accountId });
     const existingTransaction = await getTransactionById(transactionId);
-    if (existingTransaction.customer?.toString() !== reviewer._id.toString()) {
+    if (existingTransaction.customer?._id.toString() !== reviewer._id.toString()) {
       const err = new Error("Giao dịch không hợp lệ");
       err.statusCode = 406;
       return next(err);
@@ -87,6 +87,9 @@ exports.updateRating = async (req, res, next) => {
       return next(err);
     }
 
+    const oldTransaction = await getTransactionById(_transaction._id);
+    const movieId = oldTransaction.showTime.movieId;
+    const _movie = await Movie.findById(movieId);
     _movie.totalScore = _movie.totalScore - currentRating.score + score;
     await _movie.save();
 
@@ -142,6 +145,7 @@ exports.deleteRating = async (req, res, next) => {
     await _movie.save();
     _transaction.review = undefined;
     await _transaction.save();
+    await Rating.findByIdAndRemove(ratingId);
     const transaction = await getTransactionById(_transaction._id)
 
     res
