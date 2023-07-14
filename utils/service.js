@@ -117,7 +117,7 @@ exports.getTransactionById = async (transactionId) => {
     if (!transaction) {
       const err = new Error("Không tìm thấy giao dịch");
       err.statusCode = 406;
-      return next(err);
+      throw(err);
     }
     const ticketId = transaction.tickets[0]._id;
     const existingTicket = await Ticket.findById(ticketId).populate({
