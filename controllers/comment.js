@@ -62,7 +62,7 @@ exports.createComment = async (req, res, next) => {
 
     res.status(201).json({
       message: "Thêm bình luận thành công",
-      comments: _movie.comments,
+      comments: _movie.comments.sort((a, b) => a.updatedAt >= b.updatedAt),
     });
   } catch (err) {
     const error = new Error(err.message);
@@ -121,7 +121,7 @@ exports.updateComment = async (req, res, next) => {
 
     res.status(200).json({
       message: "Chỉnh sửa bình luận thành công",
-      comments: _movie.comments,
+      comments: _movie.comments.sort((a, b) => a.updatedAt >= b.updatedAt),
     });
   } catch (err) {
     const error = new Error(err.message);
@@ -186,7 +186,10 @@ exports.deleteComment = async (req, res, next) => {
     });
     res
       .status(200)
-      .json({ message: "Xoá bình luận thành công", comments: _movie.comments });
+      .json({
+        message: "Xoá bình luận thành công",
+        comments: _movie.comments.sort((a, b) => a.updatedAt >= b.updatedAt),
+      });
   } catch (err) {
     const error = new Error(err.message);
     error.statusCode = 500;
@@ -240,7 +243,11 @@ exports.reactComment = async (req, res, next) => {
       ],
     });
 
-    res.status(200).json({ comments: _movie.comments });
+    res
+      .status(200)
+      .json({
+        comments: _movie.comments.sort((a, b) => a.updatedAt >= b.updatedAt),
+      });
   } catch (err) {
     const error = new Error(err.message);
     error.statusCode = 500;

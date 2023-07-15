@@ -43,7 +43,7 @@ exports.createPost = async (req, res, next) => {
     const posts = await Post.find({ author: author._id }).populate(
       "author",
       "name avatar"
-    );
+    ).sort({updatedAt: -1});
 
     res.status(201).json({ message: "Thêm bài viết thành công", posts: posts });
   } catch (err) {
@@ -87,10 +87,9 @@ exports.updatePost = async (req, res, next) => {
     currentPost.status = status ? postStatus.PUBLIC : postStatus.DRAFT;
     await currentPost.save();
 
-    const posts = await Post.find({ author: currentUser._id }).populate(
-      "author",
-      "name avatar"
-    );
+    const posts = await Post.find({ author: currentUser._id })
+      .populate("author", "name avatar")
+      .sort({ updatedAt: -1 });
 
     res.status(200).json({
       message: "Chỉnh sửa bài viết thành công",
@@ -137,10 +136,9 @@ exports.deletePost = async (req, res, next) => {
     }
 
     await Post.findByIdAndRemove(postId);
-    const posts = await Post.find({ author: currentUser._id }).populate(
-      "author",
-      "name avatar"
-    );
+    const posts = await Post.find({ author: currentUser._id })
+      .populate("author", "name avatar")
+      .sort({ updatedAt: -1 });
     res.status(200).json({ message: "Xoá bài viết thành công", posts: posts });
   } catch (err) {
     const error = new Error(err.message);
@@ -152,10 +150,9 @@ exports.deletePost = async (req, res, next) => {
 exports.getMyPosts = async (req, res, next) => {
   try {
     const currentUser = await User.findOne({ account: req.accountId });
-    const posts = await Post.find({ author: currentUser._id }).populate(
-      "author",
-      "name avatar"
-    );
+    const posts = await Post.find({ author: currentUser._id })
+      .populate("author", "name avatar")
+      .sort({ updatedAt: -1 });
 
     res.status(200).json({ posts });
   } catch (err) {
@@ -167,10 +164,9 @@ exports.getMyPosts = async (req, res, next) => {
 
 exports.getAllPosts = async (req, res, next) => {
   try {
-    const posts = await Post.find({ status: postStatus.PUBLIC }).populate(
-      "author",
-      "name avatar"
-    );
+    const posts = await Post.find({ status: postStatus.PUBLIC })
+      .populate("author", "name avatar")
+      .sort({ updatedAt: -1 });
 
     res.status(200).json({ posts });
   } catch (err) {
