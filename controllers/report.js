@@ -47,7 +47,7 @@ exports.getDashboardData = async (req, res, next) => {
     let doubleSeatQtty = 0;
     for(let roomId in roomIds){
       const doubleSeats = await Seat.find({room: roomId, position: "right"});
-      doubleSeatQtty += doubleSeats.length * roomIds.roomId;
+      doubleSeatQtty += doubleSeats.length * roomIds[roomId];
     }
     const showTimeIds = show_times.map((st) => st._id);
     const tickets = await Ticket.find({ showTime: { $in: showTimeIds } });
