@@ -66,7 +66,7 @@ exports.createShowTime = async (req, res, next) => {
     }
 
     const show_time = new ShowTime({
-      startTime: getLocalDate(startTime),
+      startTime,
       room: roomId,
       movie: movieId,
       duration: movie.duration,
@@ -268,10 +268,11 @@ exports.updateShowTime = async (req, res, next) => {
         }
       }
     }
+    const end = new Date(startTime);
+    end.setMinutes(end.getMinutes() + movie.duration);
 
-    console.log(startTime)
-
-    currentShowTime.startTime = getLocalDate(startTime);
+    currentShowTime.startTime = startTime;
+    currentShowTime.endTime = end;
     currentShowTime.room = roomId;
     currentShowTime.movie = movieId;
     currentShowTime.duration = movie.duration;
@@ -279,6 +280,7 @@ exports.updateShowTime = async (req, res, next) => {
     currentShowTime.doublePrice = doublePrice;
     await currentShowTime.save();
 
+    console.log(currentShowTime)
     const showTimes = await ShowTime.find({
       startTime: { $gt: getLocalDate(), $lte: getNextDate() },
     })
