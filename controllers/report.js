@@ -12,6 +12,7 @@ const {
   getTransactionsByDate,
 } = require("../utils/service");
 const { userRoles, movieStatus } = require("../constants");
+const Seat = require("../models/seat");
 
 exports.getDashboardData = async (req, res, next) => {
   try {
@@ -38,10 +39,20 @@ exports.getDashboardData = async (req, res, next) => {
     const show_times = await ShowTime.find({
       startTime: { $gte: getLocalDate(currentDate), $lt: getNextDate(getLocalDate(currentDate)) },
     });
+    const roomIds = {};
+    for(let show_time of show_times){
+      if(roomIds.hasOwnProperty(show_time._id.toString())) roomIds[show_time.room.toString()] += 1;
+      else roomIds[show_time.room.toString()] = 1;
+    }
+    let doubleSeatQtty = 0;
+    for(let roomId in roomIds){
+      const doubleSeats = await Seat.find({room: roomId, position: "right"});
+      doubleSeatQtty += doubleSeats.length * roomIds.roomId;
+    }
     const showTimeIds = show_times.map((st) => st._id);
     const tickets = await Ticket.find({ showTime: { $in: showTimeIds } });
     data.soldTickets = tickets.filter((ticket) => ticket.isBooked).length;
-    data.remainingTickets = tickets.length - data.soldTickets;
+    data.remainingTickets = tickets.length - data.soldTickets - doubleSeatQtty;
     const movies = await Movie.find({
       endDay: { $gt: getLocalDate() },
       premiereDay: { $lte: getLocalDate() },
