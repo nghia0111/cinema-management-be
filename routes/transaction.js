@@ -11,20 +11,14 @@ const transactionValidation = [
 ];
 
 router.post(
-  "/transactions",
+  "/",
   isAuth,
   transactionValidation,
   transactionController.createTransaction
 );
 
-router.get("/transactions", isAuth, transactionController.getTransactions);
+router.get("/", isAuth, transactionController.getTransactions);
 
-router.get("/transactions/:transactionId", isAuth, transactionController.getTransactionById);
-
-// router.get("/roomsByType", isAuth, roomController.getRoomsByTypeId);
-
-// router.put("/rooms/:roomId", isAuth, roomController.updateRoom);
-
-// router.delete("/rooms/:roomId", isAuth, roomController.deleteRoom);
+router.get("/:transactionId", isAuth, transactionController.getTransactionById);
 
 module.exports = router;

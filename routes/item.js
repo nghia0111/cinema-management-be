@@ -10,17 +10,17 @@ const itemValidation = [
   body("price", "Giá sản phẩm không hợp lệ").trim().isInt({min: 0}),
 ];
 
-router.get("/items", itemController.getItems);
+router.get("/", itemController.getItems);
 
-router.post("/items", isAuth, itemValidation, itemController.createItem);
+router.post("/", isAuth, itemValidation, itemController.createItem);
 
 router.put(
-  "/items/:itemId",
+  "/:itemId",
   isAuth,
   itemValidation,
   itemController.updateItem
 );
 
-router.delete("/items/:itemId", isAuth, itemController.deleteItem);
+router.delete("/:itemId", isAuth, itemController.deleteItem);
 
 module.exports = router;

@@ -13,19 +13,19 @@ const actorValidation = [
   body("avatar", "Vui lòng cung cấp ảnh đại diện").trim().notEmpty(),
 ];
 
-router.get("/actors", actorController.getActors);
+router.get("/", actorController.getActors);
 
-router.get("/actors/:actorSlug", actorController.getActorBySlug);
+router.get("/:actorSlug", actorController.getActorBySlug);
 
-router.post("/actors", isAuth, actorValidation, actorController.createActor);
+router.post("/", isAuth, actorValidation, actorController.createActor);
 
 router.put(
-  "/actors/:actorId",
+  "/:actorId",
   isAuth,
   actorValidation,
   actorController.updateActor
 );
 
-router.delete("/actors/:actorId", isAuth, actorController.deleteActor);
+router.delete("/:actorId", isAuth, actorController.deleteActor);
 
 module.exports = router;

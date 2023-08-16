@@ -39,8 +39,6 @@ router.get("/users", isAuth, userController.getUsers);
 
 router.delete("/users/:userId", isAuth, userController.deleteUser);
 
-// router.delete("/users", isAuth, userController.deleteSelectedUsers);
-
 router.post(
   "/change-password",
   isAuth,

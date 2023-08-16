@@ -20,17 +20,17 @@ const roomTypeValidation = [
     }),
 ];
 
-router.get("/room-types", isAuth, roomTypeController.getRoomTypes);
+router.get("/", isAuth, roomTypeController.getRoomTypes);
 
-router.post("/room-types", isAuth, roomTypeValidation, roomTypeController.createRoomType);
+router.post("/", isAuth, roomTypeValidation, roomTypeController.createRoomType);
 
 router.put(
-  "/room-types/:roomTypeId",
+  "/:roomTypeId",
   isAuth,
   roomTypeValidation,
   roomTypeController.updateRoomType
 );
 
-router.delete("/room-types/:roomTypeId", isAuth, roomTypeController.deleteRoomType);
+router.delete("/:roomTypeId", isAuth, roomTypeController.deleteRoomType);
 
 module.exports = router;

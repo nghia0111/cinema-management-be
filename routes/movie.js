@@ -18,19 +18,19 @@ const movieValidation = [
   body("trailer", "Vui lòng cung cấp trailer").trim().notEmpty()
 ];
 
-router.get("/movies", movieController.getMovies);
+router.get("/", movieController.getMovies);
 
-router.get("/movies/:movieSlug", movieController.getMovieBySlug);
+router.get("/:movieSlug", movieController.getMovieBySlug);
 
-router.post("/movies", isAuth, movieValidation, movieController.createMovie);
+router.post("/", isAuth, movieValidation, movieController.createMovie);
 
 router.put(
-  "/movies/:movieId",
+  "/:movieId",
   isAuth,
   movieValidation,
   movieController.updateMovie
 );
 
-router.delete("/movies/:movieId", isAuth, movieController.deleteMovie);
+router.delete("/:movieId", isAuth, movieController.deleteMovie);
 
 module.exports = router;

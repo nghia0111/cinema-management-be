@@ -20,17 +20,17 @@ const genreValidation = [
     }),
 ];
 
-router.get("/genres", isAuth, genreController.getGenres);
+router.get("/", isAuth, genreController.getGenres);
 
-router.post("/genres", isAuth, genreValidation, genreController.createGenre);
+router.post("/", isAuth, genreValidation, genreController.createGenre);
 
 router.put(
-  "/genres/:genreId",
+  "/:genreId",
   isAuth,
   genreValidation,
   genreController.updateGenre
 );
 
-router.delete("/genres/:genreId", isAuth, genreController.deleteGenre);
+router.delete("/:genreId", isAuth, genreController.deleteGenre);
 
 module.exports = router;

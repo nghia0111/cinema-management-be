@@ -10,25 +10,25 @@ const commentValidation = [
 ];
 
 router.post(
-  "/comments",
+  "/",
   isAuth,
   commentValidation,
   commentController.createComment
 );
 
 router.put(
-  "/comments/:commentId",
+  "/:commentId",
   isAuth,
   commentValidation,
   commentController.updateComment
 );
 
 router.put(
-  "/comments/:commentId/react",
+  "/:commentId/react",
   isAuth,
   commentController.reactComment
 );
 
-router.delete("/comments/:commentId", isAuth, commentController.deleteComment);
+router.delete("/:commentId", isAuth, commentController.deleteComment);
 
 module.exports = router;

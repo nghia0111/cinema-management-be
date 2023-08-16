@@ -13,19 +13,19 @@ const ratingValidation = [
 ];
 
 router.post(
-  "/ratings",
+  "/",
   isAuth,
   ratingValidation,
   ratingController.createRating
 );
 
 router.put(
-  "/ratings/:ratingId",
+  "/:ratingId",
   isAuth,
   ratingValidation,
   ratingController.updateRating
 );
 
-router.delete("/ratings/:ratingId", isAuth, ratingController.deleteRating);
+router.delete("/:ratingId", isAuth, ratingController.deleteRating);
 
 module.exports = router;
